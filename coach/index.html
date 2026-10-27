@@ -464,7 +464,7 @@ function vHome(){
     + '<button class="btn line" onclick="go(\'' + (S.me || S.token ? 'me' : 'boards') + '\')">' + (S.me || S.token ? ic('user') + 'My page' : ic('trophy') + 'Leaderboards') + '</button></div>';
   if (fresh()) {
     h += '<div class="cols"><div>' + whatsOn() + guides() + howItWorks() + '</div><div>';
-    h += firstsCard();
+    h += firstPostsCard();
     if (q.feed.length) h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
     return h + '</div></div>';
   }
@@ -474,28 +474,24 @@ function vHome(){
   if (q.feed.length) h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
   if ((q.improved || []).length) h += '<section class="card"><div class="h-sec">Most improved' + (q.latest && q.previous ? '<span class="more" style="cursor:default;color:var(--muted)">' + esc(q.previous) + ' → ' + esc(q.latest.round) + '</span>' : '') + '</div>' + improvedList() + '</section>';
   h += '</div><div>';
-  h += firstsCard();
+  h += firstPostsCard();
   h += '<section class="card"><div class="h-sec">Club records <button class="more" onclick="go(\'boards\')">Leaderboards</button></div>' + recordsGrid() + '</section>';
   h += '<section class="card"><div class="h-sec">Team check</div><div class="small muted" style="margin:-6px 0 10px">Share of players at the target for their position.</div>' + teamBars() + '</section>';
   h += '</div></div>';
   return h;
 }
-/* First on the board: the first result in each test this season, and the tests still up for grabs.
-   Shown until every test has someone on it. */
-function firstsCard(){
-  var q = S.squad, f = q.firsts || [], tests = q.tests || [];
-  var open = tests.filter(function(t){ return !f.some(function(x){ return x.key === t.key; }); });
-  if (!tests.length || !open.length) return '';
-  var nm = function(k){ return (TM[k] && TM[k].short) || label(k); };
-  var h = '<section class="card"><div class="h-sec">First on the board</div>'
-    + '<div class="small muted" style="margin:-6px 0 10px">' + (f.length ? 'The first result in each test this season. Get your name on the rest.' : 'Nobody’s on the board yet. Log a PB and your name goes up first.') + '</div>';
-  if (f.length) h += '<div class="list">' + f.slice(0, 8).map(function(x){
-    return '<div class="item"><div class="av">🥇</div><div class="grow"><div class="name">' + esc(x.n) + '</div><div class="small muted">First ' + esc(nm(x.key)) + ': <b style="color:var(--ink)">' + esc(fmtU(x.key, x.v)) + '</b></div></div><div class="tiny muted">' + esc(dShort(x.date)) + '</div></div>';
+/* First posts: players who've logged a test for the first time. It's about having a go, not about the number,
+   so no results are shown and nobody is ranked. */
+function firstPostsCard(){
+  var q = S.squad, fp = q.firstPosts || [], meName = S.me ? S.me.name : '';
+  var h = '<section class="card"><div class="h-sec">First posts</div>'
+    + '<div class="small muted" style="margin:-6px 0 10px">' + (fp.length ? 'Logged a test for the first time. Every number counts, not just the big ones.' : 'Nobody’s posted yet. Log any result, big or small, and you’re on here.') + '</div>';
+  if (fp.length) h += '<div class="list">' + fp.slice(0, 8).map(function(x){
+    var t = x.tests.map(function(k){ return label(k).replace(/-/g, '‑'); }), list = t.slice(0, 4).join(' · ') + (t.length > 4 ? ' +' + (t.length - 4) + ' more' : '');
+    return '<div class="item"><div class="av">' + esc(initials(x.n)) + '</div><div class="grow"><div class="name">' + esc(x.n) + (x.n === meName ? ' <span class="tag" style="margin-left:4px">You</span>' : '') + '</div><div class="small muted">First go: ' + esc(list) + '</div></div><div class="tiny muted">' + esc(dShort(x.date)) + '</div></div>';
   }).join('') + '</div>';
-  h += '<div class="tiny muted" style="margin:12px 0 6px;font-weight:700;letter-spacing:.04em;text-transform:uppercase">Still up for grabs · ' + open.length + '</div>'
-    + '<div class="chips wrap">' + open.map(function(t){ return '<span class="tag">' + esc(nm(t.key)) + '</span>'; }).join('') + '</div>'
-    + '<button class="btn red wide" style="margin-top:12px" onclick="openPb()">' + ic('plus') + 'Log a PB</button>';
-  return h + '</section>';
+  if (fp.length > 8) h += '<div class="tiny muted" style="margin-top:8px">And ' + (fp.length - 8) + ' more getting started.</div>';
+  return h + '<button class="btn red wide" style="margin-top:12px" onclick="openPb()">' + ic('plus') + 'Log a PB</button></section>';
 }
 function spondAttrs(u){
   if (phoneKind() && /(^|\/\/)(www\.)?spond\.com\//i.test(u)) return ' href="https://spond.com/landing"';
