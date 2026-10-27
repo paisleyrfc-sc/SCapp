@@ -207,7 +207,13 @@ h1,h2,h3{margin:0}
 .cal .d.today{background:var(--navy);color:#fff;font-weight:700}
 .cal .dots{display:flex;gap:3px;justify-content:center;height:6px;margin-top:3px}
 .cal .dots i{width:6px;height:6px;border-radius:50%}
-.k-game{background:var(--red)}.k-testing{background:var(--navy)}.k-session{background:var(--gold)}.k-training{background:var(--green)}
+.k-game{background:var(--red)}.k-testing{background:var(--navy)}.k-session{background:var(--gold)}.k-training{background:var(--green)}.k-event{background:#6B4FA0}
+.install ol.steps{margin:0;padding-left:20px;font-size:14px;line-height:1.5}.install ol.steps li{margin:3px 0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.guide{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}.guide:first-of-type{border-top:0}.guide .grow{display:flex;flex-direction:column;gap:2px}.guide .gi{font-size:22px}.guide .ico{color:var(--muted)}
+.whoin{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--tint)}
+.reg{display:flex;align-items:center;gap:12px;padding:11px 4px;border-top:1px solid var(--line);cursor:pointer;user-select:none}
+.reg input{width:22px;height:22px;accent-color:var(--navy);flex:none;margin:0}.reg.chg{background:#FFFBF0}.reg.unav .name{color:var(--faint)}
 .cal .d.today .k-testing{background:#fff}
 .ag{display:flex;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
 .ag .dt{flex:none;width:46px;text-align:center;border-radius:10px;padding:5px 0;background:var(--tint);line-height:1.1}
@@ -405,7 +411,7 @@ function waShare(text){ return 'https://wa.me/?text=' + encodeURIComponent(text)
 
 /* ---------------- navigation ---------------- */
 function tabs(){
-  var t = [['home','Squad','home'],['boards','Leaders','trophy'],['league','League','table'],['me','My page','user']];
+  var t = [['home','Hub','home'],['boards','Leaders','trophy'],['league','League','table'],['me','My page','user']];
   if (B.coach || S.pin || LS.get('prfc_coachmode')) t.push(['coach','Coach','clip']);
   return t;
 }
@@ -441,7 +447,7 @@ function vHome(){
   h += '<section class="card hero">';
   if (nx) h += '<div class="kick">Next game</div><div class="big">' + (nx.ha === 'Away' ? '@ ' : 'v ') + esc(nx.opp) + '</div><div class="meta">' + esc(dLong(nx.date)) + (nx.ko ? ' · ' + esc(nx.ko) : '') + (nx.comp ? ' · ' + esc(nx.comp) : '') + '</div>'
     + (q.spond ? '<div class="meta" style="margin-top:6px"><a target="_blank" rel="noopener" href="' + esc(q.spond) + '" style="color:#fff;font-weight:700">Available? Say so on Spond ›</a></div>' : '');
-  else h += '<div class="kick">' + esc(q.club) + ' S&amp;C</div><div class="big">Squad hub</div>';
+  else h += '<div class="kick">' + esc(q.club) + ' S&amp;C</div><div class="big">Hub</div>';
   if (ls) h += '<div class="meta" style="margin-top:6px">Last time out: <b style="color:#fff">' + esc(ls.result) + '</b> ' + (ls.ha === 'Away' ? '@ ' : 'v ') + esc(ls.opp) + '</div>';
   h += leagueLine();
   if (lt && q.nextTesting) h += '<div class="meta" style="margin-top:6px">Next testing day: <b style="color:#fff">' + esc(dLong(q.nextTesting)) + '</b></div>';
@@ -454,12 +460,12 @@ function vHome(){
   h += '<div class="ctas"><button class="btn red" onclick="openPb()">' + ic('plus') + 'Log a PB</button>'
     + '<button class="btn line" onclick="go(\'' + (S.me || S.token ? 'me' : 'boards') + '\')">' + (S.me || S.token ? ic('user') + 'My page' : ic('trophy') + 'Leaderboards') + '</button></div>';
   if (fresh()) {
-    h += '<div class="cols"><div>' + whatsOn() + howItWorks() + '</div><div>';
+    h += '<div class="cols"><div>' + whatsOn() + guides() + howItWorks() + '</div><div>';
     h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
     return h + '</div></div>';
   }
   h += '<div class="cols"><div>';
-  h += whatsOn();
+  h += whatsOn() + guides();
   h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
   h += '<section class="card"><div class="h-sec">Most improved' + (q.latest && q.previous ? '<span class="more" style="cursor:default;color:var(--muted)">' + esc(q.previous) + ' → ' + esc(q.latest.round) + '</span>' : '') + '</div>' + improvedList() + '</section>';
   h += '</div><div>';
@@ -469,8 +475,8 @@ function vHome(){
   return h;
 }
 /* What's on: two-week mini calendar from the Season calendar and the fixtures, then the next few things. */
-var KIND = {game: ['Game', '🏉'], training: ['Training', '🏉'], session: ['Gym / fitness', '💪'], testing: ['Testing day', '⏱️']};
-var KORDER = ['game', 'training', 'session', 'testing'];
+var KIND = {game: ['Game', '🏉'], training: ['Training', '🏉'], session: ['Gym / fitness', '💪'], testing: ['Testing day', '⏱️'], event: ['Club event', '🎉']};
+var KORDER = ['game', 'training', 'session', 'testing', 'event'];
 function isoOf(d){ return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2); }
 function whatsOn(){
   var q = S.squad, items = q.week || [], today = q.today || todayIso();
@@ -487,7 +493,13 @@ function whatsOn(){
   }
   var seen = KORDER.filter(function(k){ return items.some(function(x){ return x.kind === k; }); });
   h += '</div><div class="legend2">' + seen.map(function(k){ return '<span><i class="k-' + k + '"></i>' + (k === 'testing' ? 'Testing' : KIND[k][0]) + '</span>'; }).join('') + '</div>';
-  var next = items.filter(function(x){ return x.date >= today; }).slice(0, 5);
+  // regular training shows once (the next one, with its usual days), so games, testing and club events aren't pushed off the list
+  var tr = items.filter(function(x){ return x.kind === 'training' && x.date >= today; }), wd = {};
+  tr.forEach(function(x){ var p = x.date.split('-'), n = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).getDay(); wd[n] = (wd[n] || 0) + 1; });
+  var usual = [1,2,3,4,5,6,0].filter(function(n){ return wd[n] >= 2; }).map(function(n){ return DAY[n]; });
+  var next = items.filter(function(x){ return x.date >= today && (x.kind !== 'training' || x === tr[0]); }).slice(0, 6).map(function(x){
+    return x === tr[0] && usual.length ? {date: x.date, kind: x.kind, what: x.what, sub: 'Usually ' + usual.join(' & ')} : x;
+  });
   if (q.spondInvite) h += '<div class="tiny muted" style="margin:2px 0 6px">New to the squad? <a target="_blank" rel="noopener" href="' + esc(q.spondInvite) + '">Join us on Spond ›</a></div>';
   if (!next.length) h += '<div class="small muted" style="margin-top:8px">Nothing planned yet. Coaches add sessions and testing days on the Season calendar.</div>';
   else h += next.map(function(x){
@@ -498,6 +510,14 @@ function whatsOn(){
 }
 /* A brand-new season: no testing results, records or PBs yet. */
 function fresh(){ var q = S.squad; return !q.latest && !q.feed.length && !q.records.some(function(x){ return x.v != null; }); }
+/* Guides the coaches share (Settings rows named "Guide: ..."), e.g. the in-season running plan. */
+function guides(){
+  var g = (S.squad && S.squad.guides) || [];
+  if (!g.length) return '';
+  return '<section class="card"><div class="h-sec">Guides</div>' + g.map(function(x){
+    return '<a class="guide" target="_blank" rel="noopener" href="' + esc(x.url) + '"><span class="gi">📘</span><span class="grow"><b>' + esc(x.name) + '</b><span class="tiny muted">Opens the guide</span></span>' + ic('ext') + '</a>';
+  }).join('') + '</section>';
+}
 function howItWorks(){
   var st = function(n, t, d){ return '<div class="how"><b>' + n + '</b><div><div class="name">' + t + '</div><div class="small muted">' + d + '</div></div></div>'; };
   return '<section class="card"><div class="h-sec">How it works</div>'
@@ -678,10 +698,13 @@ function vMe(){
     + (m.unit ? '<span class="tag">' + esc(m.unit) + '</span>' : '') + (m.bw ? '<span class="tag">' + m.bw + ' kg</span>' : '') + '</div></div></div></section>';
   if (m.needsPosition || m.needsBw) {
     h += '<section class="card" style="border-color:#E6C77A;background:#FFFBF0"><div class="h-sec">Finish your profile</div><div class="small muted" style="margin:-6px 0 12px">So your targets match your position and size.</div>';
-    if (m.needsPosition) h += '<div class="field"><label for="setpos">Main position</label><select class="inp" id="setpos"><option value="">Pick your position</option>' + S.squad.positions.map(function(p){ return '<option>' + esc(p) + '</option>'; }).join('') + '</select></div>';
+    var posOpts = function(first){ return '<option value="">' + first + '</option>' + S.squad.positions.map(function(p){ return '<option>' + esc(p) + '</option>'; }).join(''); };
+    if (m.needsPosition) h += '<div class="field"><label for="setpos">Main position</label><select class="inp" id="setpos">' + posOpts('Pick your position') + '</select></div>'
+      + '<div class="field"><label for="setpos2">Can also play <span class="muted" style="font-weight:400">(optional, up to two)</span></label><div class="row2"><select class="inp" id="setpos2">' + posOpts('None') + '</select><select class="inp" id="setpos3">' + posOpts('None') + '</select></div></div>';
     if (m.needsBw) h += '<div class="field"><label for="setbw">Body weight (kg)</label><input class="inp" id="setbw" inputmode="decimal" placeholder="e.g. 95"></div>';
     h += '<div class="err" id="proferr"></div><button class="btn navy wide" onclick="saveProfile()">Save</button></section>';
   }
+  h += installCard();
   var rk = sc.unitRank ? ordinal(sc.unitRank) + ' of ' + sc.unitSize + ' ' + (m.unit ? m.unit.toLowerCase() : 'players') : 'Not ranked yet';
   h += '<div class="tiles">' + tile('Overall', sc.overall, rk, true) + tile('Running', sc.running) + tile('Gym', sc.gym) + tile('Power', sc.power) + '</div>';
   h += '<div class="cols"><div>';
@@ -694,6 +717,7 @@ function vMe(){
     return '<div class="f"><div class="grow"><div class="name">' + esc(label(t.key)) + '</div><div class="small muted">Best ' + esc(fmtU(t.key, t.best)) + ' · target ' + esc(fmtU(t.key, t.target)) + '</div></div><b>' + Math.round((1 - t.pct) * 100) + '% off</b></div>';
   }).join('') + '</div>';
   h += '</section>';
+  h += guides();
   var hasCat = function(c){ return m.tests.some(function(t){ return t.best != null && (TM[t.key] || {}).cat === c; }); };
   if (hasCat('Running') || hasCat('Gym')) h += '<section class="card"><div class="h-sec">Radars</div><div class="small muted" style="margin:-6px 0 10px">% of your position target. Navy ring = target. Further out is better.</div><div class="radars"><div class="radar"><h3>Running</h3><div style="position:relative;height:290px"><canvas id="rd1"></canvas></div></div><div class="radar"><h3>Gym</h3><div style="position:relative;height:290px"><canvas id="rd2"></canvas></div></div></div></section>';
   else h += '<section class="card"><div class="h-sec">Radars</div><div class="empty"><div class="em">🎯</div>Your running and gym radars draw themselves after testing day, against the targets for your position.</div></section>';
@@ -711,9 +735,25 @@ function vMe(){
   h += '</div></div>';
   h += '<section class="card"><div class="h-sec">Your data</div><div class="small">' + (m.hidden ? 'You’re <b>off</b> the leaderboards. Only you and the coaches see your results.' : 'You’re <b>on</b> the leaderboards, the PB feed and the club records.') + '</div>'
     + '<div class="ctas" style="margin:10px 0 0"><button class="btn line sm" onclick="setBoards(' + (m.hidden ? 'true' : 'false') + ', this)">' + (m.hidden ? 'Put me on the boards' : 'Take me off the boards') + '</button><button class="btn lite sm" onclick="openPrivacy(false)">How we use data</button></div></section>';
-  h += '<div class="tiny muted" style="text-align:center;margin-top:10px">Tip: add this page to your home screen so it opens like an app.</div>';
   return h;
 }
+/* "Put it on your phone": shown in a phone's browser until the app is on the home screen (or the player hides it). */
+var INSTALL = null;
+window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); INSTALL = e; if (S.view === 'me' && !typing()) render(); });
+function phoneKind(){ var u = navigator.userAgent || ''; return /iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1) ? 'ios' : /Android/.test(u) ? 'android' : ''; }
+function installed(){ try { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch(e){ return false; } }
+function installCard(){
+  var k = phoneKind(), u = navigator.userAgent || '';
+  if (!B.web || !k || installed() || LS.get('prfc_nohint')) return '';
+  var h = '<section class="card install"><div class="h-sec">Put it on your phone<button class="more" onclick="LS.set(\'prfc_nohint\',\'1\');render()">Hide</button></div>';
+  if (/FBAN|FBAV|Instagram|Snapchat|TikTok|LinkedInApp/i.test(u)) h += '<div class="small">This opened inside another app. Open it in ' + (k === 'ios' ? 'Safari' : 'Chrome') + ' first (look for <b>Open in browser</b> in that app’s menu), then follow the steps here.</div>';
+  else if (k === 'ios' && /CriOS/.test(u)) h += '<ol class="steps"><li>Tap the Share button <b>⬆</b> in the address bar.</li><li>Tap <b>Add to Home Screen</b>, then <b>Add</b>.</li></ol>';
+  else if (k === 'ios') h += '<ol class="steps"><li>Tap <b>⋯</b> next to the address bar, then <b>Share</b>. (Older iPhones: tap the Share button <b>⬆</b>.)</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Leave <b>Open as Web App</b> on and tap <b>Add</b>.</li></ol>';
+  else if (INSTALL) h += '<div class="small" style="margin-bottom:10px">One tap and it sits on your home screen like any other app.</div><button class="btn navy wide" onclick="doInstall()">Add to home screen</button>';
+  else h += '<ol class="steps"><li>Tap <b>⋮</b> at the top right of Chrome.</li><li>Tap <b>Add to home screen</b> (or <b>Install app</b>).</li><li>Tap <b>Install</b>.</li></ol>';
+  return h + '<div class="tiny muted" style="margin-top:8px">The icon opens your own page, so keep it on your own phone.</div></section>';
+}
+function doInstall(){ if (!INSTALL) return; var p = INSTALL; INSTALL = null; p.prompt(); (p.userChoice || Promise.resolve()).then(function(){ render(); }, function(){}); }
 function ordinal(n){ var s = ['th','st','nd','rd'], v = n % 100; return n + (s[(v-20)%10] || s[v] || s[0]); }
 function tile(lab, v, sub, main){
   var w = v == null ? 0 : Math.max(4, Math.min(100, v));
@@ -763,9 +803,11 @@ function drawRadars(){
   });
 }
 function saveProfile(){
-  var pos = (document.getElementById('setpos') || {}).value || '';
-  var bw = (document.getElementById('setbw') || {}).value || '';
-  var err = document.getElementById('proferr');
+  var v = function(id){ return (document.getElementById(id) || {}).value || ''; };
+  var main = v('setpos'), bw = v('setbw'), err = document.getElementById('proferr');
+  var also = [v('setpos2'), v('setpos3')].filter(function(x, i, a){ return x && x !== main && a.indexOf(x) === i; });
+  if (!main && also.length) { err.textContent = 'Pick your main position first.'; return; }
+  var pos = main ? [main].concat(also) : '';
   if (!pos && !bw) { err.textContent = 'Pick a position or type your weight.'; return; }
   err.textContent = 'Saving…';
   call('api_setProfile', S.token, pos, bw).then(function(me){ S.me = me; toast('Saved ✓'); render(); }).catch(function(e){ err.textContent = e.message; });
@@ -913,18 +955,53 @@ function cur(name, h){
   var r = (S.coach.testing[S.t.round] || {})[name];
   return r && r.vals[h] != null ? r.vals[h] : '';
 }
+/* Who's in for testing day: ticked players are the only ones on the paper sheets and the entry screen. Kept in the coach sheet (Players, column N) so every coach sees the same list. */
+function inTest(p){ return S.reg && p.name in S.reg ? S.reg[p.name] : !!p.inTest; }
+function regCount(){ return Object.keys(S.reg || {}).length; }
+function regToggle(name, on){
+  var p = S.coach.players.filter(function(x){ return x.name === name; })[0]; if (!p) return;
+  S.reg = S.reg || {};
+  if (on === !!p.inTest) delete S.reg[name]; else S.reg[name] = on;
+}
+function regAll(mode){ S.coach.players.forEach(function(p){ regToggle(p.name, mode === 'none' ? false : sqStatus(p) !== 'Unavailable'); }); render(); }
+function vRegister(){
+  var C = S.coach, n = C.players.filter(inTest).length;
+  var players = C.players.slice().sort(function(a, b){ var ua = sqStatus(a) === 'Unavailable' ? 1 : 0, ub = sqStatus(b) === 'Unavailable' ? 1 : 0; return ua - ub || (a.name < b.name ? -1 : 1); });
+  var h = '<section class="card"><div class="h-sec">Who’s in for testing day<button class="more" onclick="S.t.reg=false;S.reg={};render()">Back</button></div>'
+    + '<div class="small muted" style="margin:-6px 0 10px">Tick everyone taking part (Spond replies are a good start). The paper sheets and the entry screen then list only them, with blank rows for walk-ins.</div>'
+    + '<div class="ctas" style="margin:0 0 6px"><button class="btn line sm" onclick="regAll(\'avail\')">Tick all available</button><button class="btn lite sm" onclick="regAll(\'none\')">Untick everyone</button></div>'
+    + '<input class="inp" placeholder="Find a player" oninput="var q=this.value.toLowerCase();document.querySelectorAll(\'.reg\').forEach(function(e){e.style.display=e.getAttribute(\'data-n\').indexOf(q)>=0?\'\':\'none\'})" style="margin:6px 0 4px">'
+    + '<div class="small" style="margin:6px 2px"><b id="regn">' + n + '</b> ticked</div>';
+  h += players.map(function(p){
+    var st = sqStatus(p);
+    return '<label class="reg' + (S.reg && p.name in S.reg ? ' chg' : '') + (st === 'Unavailable' ? ' unav' : '') + '" data-n="' + esc(p.name.toLowerCase()) + '"><input type="checkbox" data-p="' + esc(p.name) + '"' + (inTest(p) ? ' checked' : '') + ' onchange="regToggle(this.getAttribute(\'data-p\'), this.checked);this.closest(\'.reg\').classList.toggle(\'chg\', this.getAttribute(\'data-p\') in S.reg);document.getElementById(\'regn\').textContent=S.coach.players.filter(inTest).length;updateSavebar()">'
+      + '<div class="grow"><div class="name">' + esc(p.name) + '</div><div class="tiny muted">' + esc([p.group, st !== 'Available' ? st : ''].filter(Boolean).join(' · ') || 'No position yet') + '</div></div></label>';
+  }).join('');
+  return h + '</section><div style="height:70px"></div>';
+}
+function saveReg(){
+  var btn = document.getElementById('savebtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  var changes = Object.keys(S.reg).map(function(n){ return {name: n, inTest: S.reg[n]}; });
+  call('api_setPlayers', S.pin, changes).then(function(c){ S.coach = c; S.reg = {}; S.t.reg = false; toast('Saved. ' + c.players.filter(function(p){ return p.inTest; }).length + ' players in for testing day ✓'); render(); })
+    .catch(function(e){ toast(e.message); if (btn) { btn.disabled = false; btn.textContent = 'Save'; } });
+}
 function vTesting(){
+  if (S.t.reg) return vRegister();
   var C = S.coach, T = S.t, h = '';
   var tests = stationTests();
+  var ticked = C.players.filter(function(p){ return p.inTest; });
   h += '<section class="card"><div class="ctrls"><div class="field"><label for="tdate">Date</label><input class="inp" type="date" id="tdate" value="' + esc(T.date) + '" onchange="S.t.date=this.value"></div>'
     + '<div class="field"><label for="tround">Round</label><select class="inp" id="tround" onchange="setRound(this)">' + C.rounds.map(function(r){ return '<option' + (r === T.round ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select></div></div>'
     + '<div class="chips" style="padding-bottom:4px">' + C.stations.map(function(s){ return s.name; }).concat([STN_ALL]).map(function(n){ return '<button class="chip ' + (T.station === n ? 'on' : '') + '" onclick="S.t.station=\'' + n + '\';render()">' + n + '</button>'; }).join('') + '</div>';
   var st = C.stations.filter(function(x){ return x.name === T.station; })[0];
   if (st) h += '<div class="small muted">' + esc(st.help) + '</div>';
   h += '<input class="inp" style="margin-top:12px" placeholder="Find a player" value="' + esc(T.q) + '" oninput="S.t.q=this.value;filterRows()">'
+    + '<div class="whoin"><div class="grow small">' + (ticked.length ? '<b>' + ticked.length + ' players</b> ticked for testing day' : '<b>Who’s in?</b> Tick who’s taking part, so you only print them.') + '</div><button class="btn ' + (ticked.length ? 'line' : 'navy') + ' sm" onclick="S.t.reg=true;S.reg={};render()">' + (ticked.length ? 'Change' : 'Tick who’s in') + '</button></div>'
     + '<div class="ctas" style="margin:12px 0 0"><button class="btn line sm" onclick="printSheet(false)">🖨 Paper sheet: ' + esc(T.station === STN_ALL ? 'all tests' : T.station.toLowerCase()) + '</button>' + (T.station === STN_ALL ? '' : '<button class="btn lite sm" onclick="printSheet(true)">All stations</button>') + '</div>'
-    + '<div class="tiny muted" style="margin-top:6px">Print it for the pitch, fill it in by hand, then type it in here. Players are in the same order on paper and on screen.</div></section>';
-  var players = C.players.slice().sort(function(a, b){ var ua = a.status === 'Unavailable' ? 1 : 0, ub = b.status === 'Unavailable' ? 1 : 0; return ua - ub || (a.name < b.name ? -1 : 1); });
+    + '<div class="tiny muted" style="margin-top:6px">Print it for the pitch, fill it in by hand, then type it in here. ' + (ticked.length ? 'Only the ' + ticked.length + ' ticked players are on it, plus blank rows for walk-ins.' : 'Everyone available is on it until you tick who’s in.') + ' Same order on paper and on screen.</div></section>';
+  var everyone = C.players.slice().sort(function(a, b){ var ua = a.status === 'Unavailable' ? 1 : 0, ub = b.status === 'Unavailable' ? 1 : 0; return ua - ub || (a.name < b.name ? -1 : 1); });
+  var players = ticked.length && !T.all ? everyone.filter(function(p){ return p.inTest; }) : everyone;
+  var others = everyone.length - players.length;
   var full = 0;
   var rows = players.map(function(p){
     var vals = tests.map(function(k){ return cur(p.name, k); });
@@ -939,6 +1016,8 @@ function vTesting(){
   }).join('');
   h += '<div class="small muted" style="margin:0 2px 8px"><b style="color:var(--ink)">' + full + ' of ' + players.length + '</b> players done for ' + esc(T.station === STN_ALL ? 'every test' : T.station.toLowerCase()) + ' in ' + esc(T.round || 'this round') + '.</div>';
   h += '<div id="prows">' + rows + '</div>';
+  if (others) h += '<button class="btn lite wide" style="margin-top:4px" onclick="S.t.all=true;render()">Walk-in? Show the other ' + others + ' players</button>';
+  else if (ticked.length && T.all) h += '<button class="btn lite wide" style="margin-top:4px" onclick="S.t.all=false;render()">Show only the ' + ticked.length + ' ticked players</button>';
   h += '<div style="height:70px"></div>';
   return h;
 }
@@ -946,7 +1025,8 @@ function vTesting(){
 function printSheet(all){
   var C = S.coach, T = S.t;
   var stations = all || T.station === STN_ALL ? C.stations : C.stations.filter(function(x){ return x.name === T.station; });
-  var players = C.players.filter(function(p){ return p.status !== 'Unavailable'; }).sort(function(a, b){ return a.name < b.name ? -1 : 1; });
+  var ticked = C.players.filter(function(p){ return p.inTest; });
+  var players = (ticked.length ? ticked : C.players.filter(function(p){ return p.status !== 'Unavailable'; })).sort(function(a, b){ return a.name < b.name ? -1 : 1; });
   var html = stations.map(function(st){
     var cols = st.tests.map(function(k){ var t = TM[k] || {}; return (t.short || k) + (t.mss ? ' (m:ss)' : t.unit ? ' (' + t.unit + ')' : ''); });
     return '<section class="pp"><h1>PAISLEY RFC · TESTING DAY · ' + esc(st.name.toUpperCase()) + '</h1>'
@@ -982,10 +1062,12 @@ function dirtyCount(){ var n = 0; Object.keys(S.t.dirty).forEach(function(p){ if
 function updateSavebar(){
   var bar = document.getElementById('savebar');
   var inCoach = S.view === 'coach' && S.coach;
-  var n = inCoach && S.ctab === 'testing' ? dirtyCount() : 0;
+  var r = inCoach && S.ctab === 'testing' && S.t.reg ? regCount() : 0;
+  var n = inCoach && S.ctab === 'testing' && !S.t.reg ? dirtyCount() : 0;
   var m = inCoach && S.ctab === 'squad' ? Object.keys(S.sq || {}).length : 0;
-  if (!n && !m) { if (bar) bar.remove(); return; }
+  if (!n && !m && !r) { if (bar) bar.remove(); return; }
   if (!bar) { bar = document.createElement('div'); bar.id = 'savebar'; bar.className = 'savebar'; document.body.appendChild(bar); }
+  if (r) { bar.innerHTML = '<div class="grow"><b>' + r + '</b> change' + (r === 1 ? '' : 's') + ' to who’s in</div><button class="btn line sm" onclick="S.reg={};render()">Undo</button><button class="btn red" id="savebtn" onclick="saveReg()">Save</button>'; return; }
   if (m) { bar.innerHTML = '<div class="grow"><b>' + m + '</b> player' + (m === 1 ? '' : 's') + ' changed</div><button class="btn line sm" onclick="S.sq={};render()">Undo</button><button class="btn red" id="savebtn" onclick="saveSquad()">Save</button>'; return; }
   bar.innerHTML = '<div class="grow"><b>' + n + '</b> player' + (n === 1 ? '' : 's') + ' not saved yet<div class="tiny" style="opacity:.75;font-weight:400">Kept on this phone until you save</div></div><button class="btn line sm" onclick="discard()">Undo</button><button class="btn red" id="savebtn" onclick="saveTesting()">Save</button>';
 }
