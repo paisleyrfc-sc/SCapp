@@ -976,7 +976,8 @@ function submitPb(){
     var h = '<div class="done"><div class="tick' + (r.auto ? '' : ' wait') + '">' + (r.auto ? '✓' : '…') + '</div>'
       + '<h2 style="margin-bottom:6px">' + (good ? 'NEW PB!' : r.auto ? 'LOGGED' : 'SENT TO COACH') + '</h2>'
       + '<div class="muted">' + esc(label(r.test)) + ' · <b style="color:var(--ink)">' + esc(fmtU(r.test, r.value)) + '</b></div>'
-      + '<div class="small" style="margin:8px 0 16px">' + esc(r.msg) + '</div>'
+      + '<div class="small" style="margin:8px 0 ' + (r.auto ? '4px' : '16px') + '">' + esc(r.msg) + '</div>'
+      + (r.auto ? '<div class="tiny muted" style="margin-bottom:16px">It’s on your page now. The leaderboards catch up within 5 minutes.</div>' : '')
       + (good ? '<a class="btn green wide" target="_blank" rel="noopener" href="' + waShare(share) + '">' + ic('share') + 'Share in the squad chat</a><div style="height:8px"></div>' : '')
       + '<button class="btn line wide" onclick="closePb();render()">Done</button></div>';
     document.getElementById('pbbody').innerHTML = h;
