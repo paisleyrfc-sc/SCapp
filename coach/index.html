@@ -160,7 +160,9 @@ h1,h2,h3{margin:0}
 .hint{font-size:12px;color:var(--muted)}
 .overlay{position:fixed;inset:0;background:rgba(10,14,30,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:18px 18px calc(18px + var(--safe));max-height:92vh;overflow:auto}
-.sheet .grab{width:40px;height:4px;border-radius:4px;background:#D5DAE6;margin:0 auto 12px}
+.sheet .grab{width:40px;height:5px;border-radius:5px;background:#C9CFDD;margin:0 auto 12px}
+.sheethd{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.sheethd h2{margin-right:auto}
+.sheet .x{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:var(--tint);color:var(--slate);font-size:16px;line-height:1;cursor:pointer;margin-top:-6px}
 .sheet h2{font-family:Orbitron,Roboto,sans-serif;font-size:17px;color:var(--navy);margin-bottom:14px}
 .done{text-align:center;padding:10px 0}
 .done .tick{width:64px;height:64px;border-radius:50%;background:var(--greenbg);color:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:32px;font-weight:700}
@@ -903,7 +905,7 @@ function privacyText(){
 }
 function needsPrivacy(){ return !!(S.me && !S.me.privacy && S.view !== 'coach'); }
 function openPrivacy(ask){
-  var h = '<div class="overlay"' + (ask ? '' : ' onclick="if(event.target===this)closePb()"') + '><div class="sheet privacy" role="dialog" aria-label="Your data"><div class="grab"></div><h2>' + (ask ? 'BEFORE YOU START' : 'YOUR DATA') + '</h2>'
+  var h = '<div class="overlay"' + (ask ? '' : ' onclick="if(event.target===this)closePb()"') + '><div class="sheet privacy" role="dialog" aria-label="Your data">' + (ask ? '<h2>BEFORE YOU START</h2>' : '<div class="grab"></div><div class="sheethd"><h2>YOUR DATA</h2><button class="x" onclick="closePb()" aria-label="Close">✕</button></div>')
     + '<div class="small muted">Paisley RFC’s strength and conditioning app. Here’s what it does with your information.</div>' + privacyText();
   if (ask) h += '<label class="small" style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;cursor:pointer"><input type="checkbox" id="pvok" onchange="pvTick()" style="width:20px;height:20px;flex:none;margin:0"><span>I’ve read this and understand how my information is used.</span></label>'
     + '<div class="small" style="margin-top:14px;font-weight:700">Do you want to be on the squad leaderboards?</div>'
@@ -911,6 +913,7 @@ function openPrivacy(ask){
     + '<div class="err" id="pverr"></div><div class="tiny muted" style="margin-top:8px">You can change this any time on your page.</div>';
   else h += '<button class="btn line wide" style="margin-top:14px" onclick="closePb()">Close</button>';
   document.getElementById('modal').innerHTML = h + '</div></div>';
+  if (!ask) sheetSwipe();
 }
 function pvTick(){ var ok = document.getElementById('pvok').checked; document.querySelectorAll('.choice .btn').forEach(function(b){ b.disabled = !ok; }); }
 function answerPrivacy(show, btn){
@@ -940,7 +943,7 @@ function openPb(){
   var grid = ['Running','Power','Gym','Body'].filter(function(c){ return cats[c]; }).map(function(c){
     return '<div class="tg"><div class="tgl">' + c + '</div><div class="tgc">' + cats[c].map(function(t){ return '<button type="button" class="chip pbt" data-k="' + esc(t.key) + '" onclick="pickTest(this)">' + esc((TM[t.key] && TM[t.key].short) || t.label) + '</button>'; }).join('') + '</div></div>';
   }).join('');
-  var h = '<div class="overlay" onclick="if(event.target===this)closePb()"><div class="sheet" role="dialog" aria-label="Log a PB"><div class="grab"></div><h2>LOG A PB</h2><div id="pbbody">';
+  var h = '<div class="overlay" onclick="if(event.target===this)closePb()"><div class="sheet" role="dialog" aria-label="Log a PB"><div class="grab"></div><div class="sheethd"><h2>LOG A PB</h2><button class="x" onclick="closePb()" aria-label="Close">✕</button></div><div id="pbbody">';
   if (!me) h += '<div class="field"><label for="pbname">Your name</label><select class="inp" id="pbname"><option value="">Pick your name</option>' + q.players.map(function(n){ return '<option>' + esc(n) + '</option>'; }).join('') + '</select></div>';
   else h += '<div class="small muted" style="margin:-6px 0 12px">Logging as <b style="color:var(--ink)">' + esc(me.name) + '</b></div>';
   h += '<div class="field"><label>Test</label><input type="hidden" id="pbtest" value="">' + grid + '</div>'
@@ -951,8 +954,22 @@ function openPb(){
     + '<div class="tiny muted" style="text-align:center;margin-top:10px">' + (q.strictPbs ? 'Your coach checks every PB before it goes on the boards.' : 'Sensible PBs count straight away and show as self-logged until a coach checks them. Big jumps wait for your coach first.') + '</div>';
   h += '</div></div></div>';
   document.getElementById('modal').innerHTML = h;
+  sheetSwipe();
 }
 function closePb(){ document.getElementById('modal').innerHTML = ''; }
+/* Pop-ups close with the ✕, by tapping outside, with Esc, or by pulling the sheet down from the top. */
+function sheetSwipe(){
+  var sheet = document.querySelector('#modal .sheet'); if (!sheet) return;
+  var y0 = null, dy = 0;
+  sheet.addEventListener('touchstart', function(e){ if (sheet.scrollTop > 0 || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) { y0 = null; return; } y0 = e.touches[0].clientY; dy = 0; sheet.style.transition = 'none'; }, {passive: true});
+  sheet.addEventListener('touchmove', function(e){ if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); if (dy > 6) sheet.style.transform = 'translateY(' + dy + 'px)'; }, {passive: true});
+  sheet.addEventListener('touchend', function(){
+    if (y0 == null) return; y0 = null; sheet.style.transition = 'transform .2s ease';
+    if (dy > 90) { sheet.style.transform = 'translateY(110%)'; setTimeout(function(){ closePb(); if (S.view === 'me' || S.view === 'home') render(); }, 180); }
+    else sheet.style.transform = '';
+  });
+}
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && document.querySelector('#modal .x')) closePb(); });
 function pickTest(el){
   document.getElementById('pbtest').value = el.getAttribute('data-k');
   document.querySelectorAll('.pbt').forEach(function(b){ b.classList.toggle('on', b === el); });
