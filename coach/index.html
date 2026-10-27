@@ -324,7 +324,8 @@ var ICONS = {
   ext: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
   copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
   table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/>',
-  reset: '<path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/>'
+  reset: '<path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/>',
+  pint: '<path d="M6 3h12l-1.6 17.2a1 1 0 0 1-1 .8H8.6a1 1 0 0 1-1-.8L6 3z"/><path d="M6.6 8h10.8"/>'
 };
 function ic(n){ return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[n] + '</svg>'; }
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -411,7 +412,7 @@ function waShare(text){ return 'https://wa.me/?text=' + encodeURIComponent(text)
 
 /* ---------------- navigation ---------------- */
 function tabs(){
-  var t = [['home','Hub','home'],['boards','Leaders','trophy'],['league','League','table'],['me','My page','user']];
+  var t = [['home','Hub','home'],['boards','Leaders','trophy'],['league','League','table'],['fun','Fun','pint'],['me','My page','user']];
   if (B.coach || S.pin || LS.get('prfc_coachmode')) t.push(['coach','Coach','clip']);
   return t;
 }
@@ -432,7 +433,7 @@ function render(){
   var v = document.getElementById('view');
   if (B.error && !S.squad) { v.innerHTML = '<div class="card"><div class="empty"><div class="em">⚠️</div><b>Could not load the squad data.</b><div class="small" style="margin-top:6px">' + esc(B.error) + '</div>' + (B.web ? '<button class="btn navy" style="margin-top:14px" onclick="B.error=\'\';render();boot()">Try again</button>' : '') + '</div></div>'; return; }
   if (!S.squad) { v.innerHTML = '<section class="card hero"><div class="sk" style="width:30%;opacity:.25"></div><div class="sk" style="width:60%;height:26px;opacity:.25"></div><div class="sk" style="width:45%;opacity:.25"></div></section><section class="card"><div class="sk" style="width:40%"></div><div class="sk"></div><div class="sk"></div><div class="sk" style="width:70%"></div></section>'; return; }
-  var html = S.view === 'boards' ? vBoards() : S.view === 'league' ? vLeague() : S.view === 'me' ? vMe() : S.view === 'coach' ? vCoach() : vHome();
+  var html = S.view === 'boards' ? vBoards() : S.view === 'league' ? vLeague() : S.view === 'fun' ? vFun() : S.view === 'me' ? vMe() : S.view === 'coach' ? vCoach() : vHome();
   v.innerHTML = html + '<div class="foot">Paisley RFC S&amp;C · ' + esc((S.squad && S.squad.season) || '') + ' · <a href="javascript:void 0" onclick="openPrivacy(false)" style="color:inherit">Privacy</a></div>';
   if (S.view === 'me' && S.me) drawRadars();
   updateSavebar();
@@ -510,6 +511,47 @@ function whatsOn(){
 }
 /* A brand-new season: no testing results, records or PBs yet. */
 function fresh(){ var q = S.squad; return !q.latest && !q.feed.length && !q.records.some(function(x){ return x.v != null; }); }
+/* Just for fun: boards the coaches set up on the coach sheet's Just for fun tab (quickest pint and the like).
+   Only coaches add results (from this page in coach mode), so every one is witnessed. */
+function vFun(){
+  var q = S.squad, f = q.fun || [], coach = !!(S.pin && (S.coach || LS.get('prfc_coachmode')));
+  var h = '<section class="card hero"><div class="kick">' + esc(q.club) + '</div><div class="big">Just for fun</div><div class="meta">Bragging rights only. Nothing here counts towards your scores.</div></section>';
+  if (!f.length) return h + '<section class="card"><div class="empty"><div class="em">🍺</div>No boards yet. Coaches set them up on the Just for fun tab of the coach sheet.</div></section>';
+  if (coach) {
+    var d = S.funDraft || {board: f[0].name};
+    h += '<section class="card"><div class="h-sec">Add a result</div><div class="ctrls">'
+      + '<div class="field"><label for="fboard">Board</label><select class="inp" id="fboard">' + f.map(function(b){ return '<option' + (b.name === d.board ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select></div>'
+      + '<div class="field"><label for="fwho">Player</label><select class="inp" id="fwho"><option value="">Pick a player</option>' + (q.players || []).map(function(n){ return '<option>' + esc(n) + '</option>'; }).join('') + '</select></div>'
+      + '<div class="field"><label for="fres">Result</label><input class="inp" id="fres" inputmode="decimal" placeholder="e.g. 6.8" autocomplete="off"></div>'
+      + '<div class="field"><label for="fdate">Date</label><input class="inp" type="date" id="fdate" value="' + todayIso() + '"></div></div>'
+      + '<div class="err" id="funerr"></div><button class="btn navy wide" id="funbtn" onclick="addFun()">Add to the board</button></section>';
+  }
+  h += '<div class="cols"><div>';
+  var half = Math.ceil(f.length / 2);
+  f.forEach(function(b, bi){
+    if (bi === half) h += '</div><div>';
+    var meName = S.me ? S.me.name : '';
+    h += '<section class="card"><div class="h-sec">' + esc(b.name) + (b.total ? '<span class="tiny muted" style="font-weight:500;letter-spacing:0;text-transform:none">' + b.total + ' on the board</span>' : '') + '</div>'
+      + (b.note ? '<div class="small muted" style="margin:-6px 0 10px">' + esc(b.note) + '</div>' : '');
+    if (!b.rows.length) h += '<div class="empty small">Nobody on it yet.' + (coach ? '' : ' Coaches add results.') + '</div>';
+    else h += '<div class="lb">' + b.rows.map(function(r, i){
+      var me = r.n === meName;
+      return '<div class="lbr' + (me ? ' me' : '') + '"><div class="rk' + (i < 3 ? ' g' + (i + 1) : '') + '">' + (i + 1) + '</div><div class="grow"><div class="name">' + esc(r.n) + (me ? ' <span class="tag" style="margin-left:4px">You</span>' : '') + '</div><div class="tiny muted">' + esc([dShort(r.date), r.notes].filter(Boolean).join(' · ')) + '</div></div><div class="right"><span class="val lbv">' + esc(String(Math.round(r.v * 100) / 100) + (b.unit ? ' ' + b.unit : '')) + '</span></div></div>';
+    }).join('') + '</div>';
+    h += '</section>';
+  });
+  return h + '</div></div>';
+}
+function addFun(){
+  var v = function(id){ return (document.getElementById(id) || {}).value || ''; };
+  var f = {board: v('fboard'), name: v('fwho'), result: v('fres').trim(), date: v('fdate')}, err = document.getElementById('funerr'), btn = document.getElementById('funbtn');
+  if (!f.name) { err.textContent = 'Pick a player.'; return; }
+  if (!(parseFloat(f.result.replace(',', '.')) > 0)) { err.textContent = 'Type the result as a number.'; return; }
+  err.textContent = ''; btn.disabled = true; btn.textContent = 'Adding…';
+  S.funDraft = {board: f.board};
+  call('api_addFun', S.pin, f).then(function(sq){ S.squad = sq; indexTests(); keep(); toast(f.name.split(' ')[0] + ' is on the ' + f.board + ' board ✓'); render(); })
+    .catch(function(e){ btn.disabled = false; btn.textContent = 'Add to the board'; err.textContent = e.message; });
+}
 /* Guides the coaches share (Settings rows named "Guide: ..."), e.g. the in-season running plan. */
 function guides(){
   var g = (S.squad && S.squad.guides) || [];
