@@ -1,5 +1,5 @@
 // Keeps the app opening when there is no signal. Always tries the network first, so updates show straight away.
-const CACHE = 'prfc-v3';
+const CACHE = 'prfc-v4';
 const SHELL = ['./', './coach/', './icons/crest.png', './icons/icon-192.png', './icons/coach-192.png', './manifest.webmanifest', './coach/manifest.webmanifest'];
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).catch(() => {})); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

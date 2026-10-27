@@ -207,7 +207,7 @@ h1,h2,h3{margin:0}
 .cal .d.today{background:var(--navy);color:#fff;font-weight:700}
 .cal .dots{display:flex;gap:3px;justify-content:center;height:6px;margin-top:3px}
 .cal .dots i{width:6px;height:6px;border-radius:50%}
-.k-game{background:var(--red)}.k-testing{background:var(--navy)}.k-session{background:var(--gold)}
+.k-game{background:var(--red)}.k-testing{background:var(--navy)}.k-session{background:var(--gold)}.k-training{background:var(--green)}
 .cal .d.today .k-testing{background:#fff}
 .ag{display:flex;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
 .ag .dt{flex:none;width:46px;text-align:center;border-radius:10px;padding:5px 0;background:var(--tint);line-height:1.1}
@@ -229,6 +229,12 @@ h1,h2,h3{margin:0}
 .sqr .name{grid-column:1/-1}
 .sqr select.inp{padding:8px 10px;font-size:14px}
 .sqr.chg .name{color:var(--navy)}.sqr.chg select{border-color:var(--navy)}
+.sqr .also{grid-column:1/-1}
+.chips.wrap{flex-wrap:wrap;overflow:visible}
+.chip.sm{padding:5px 10px;font-size:12px}
+.bp{padding:10px 0;border-top:1px solid var(--line)}
+.bph{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.bp .chips{gap:6px}
 @media (min-width:720px){.sqr{grid-template-columns:1.2fr 1.4fr 1fr}.sqr .name{grid-column:auto}}
 @media print{
   body.printing>*:not(#printarea){display:none!important}
@@ -463,7 +469,8 @@ function vHome(){
   return h;
 }
 /* What's on: two-week mini calendar from the Season calendar and the fixtures, then the next few things. */
-var KIND = {game: ['Game', '🏉'], testing: ['Testing day', '⏱️'], session: ['Session', '💪']};
+var KIND = {game: ['Game', '🏉'], training: ['Training', '🏉'], session: ['Gym / fitness', '💪'], testing: ['Testing day', '⏱️']};
+var KORDER = ['game', 'training', 'session', 'testing'];
 function isoOf(d){ return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2); }
 function whatsOn(){
   var q = S.squad, items = q.week || [], today = q.today || todayIso();
@@ -478,12 +485,14 @@ function whatsOn(){
     var uniq = ks.filter(function(k, j){ return ks.indexOf(k) === j; });
     h += '<div class="d' + (iso === today ? ' today' : iso < today ? ' past' : '') + '">' + d.getDate() + '<div class="dots">' + uniq.map(function(k){ return '<i class="k-' + k + '"></i>'; }).join('') + '</div></div>';
   }
-  h += '</div><div class="legend2"><span><i class="k-game"></i>Game</span><span><i class="k-testing"></i>Testing</span><span><i class="k-session"></i>Training / gym</span></div>';
+  var seen = KORDER.filter(function(k){ return items.some(function(x){ return x.kind === k; }); });
+  h += '</div><div class="legend2">' + seen.map(function(k){ return '<span><i class="k-' + k + '"></i>' + (k === 'testing' ? 'Testing' : KIND[k][0]) + '</span>'; }).join('') + '</div>';
   var next = items.filter(function(x){ return x.date >= today; }).slice(0, 5);
+  if (q.spondInvite) h += '<div class="tiny muted" style="margin:2px 0 6px">New to the squad? <a target="_blank" rel="noopener" href="' + esc(q.spondInvite) + '">Join us on Spond ›</a></div>';
   if (!next.length) h += '<div class="small muted" style="margin-top:8px">Nothing planned yet. Coaches add sessions and testing days on the Season calendar.</div>';
   else h += next.map(function(x){
     var p = x.date.split('-'), dd = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
-    return '<div class="ag"><div class="dt"><span>' + DAY[dd.getDay()] + '</span><b>' + dd.getDate() + '</b><span>' + MON[dd.getMonth()] + '</span></div><div class="kb k-' + x.kind + '"></div><div class="grow"><div class="name">' + esc(x.what) + '</div><div class="tiny muted">' + esc([x.kind === 'session' || x.what === KIND[x.kind][0] ? '' : KIND[x.kind][0], x.ko, x.sub].filter(Boolean).join(' · ')) + '</div></div></div>';
+    return '<div class="ag"><div class="dt"><span>' + DAY[dd.getDay()] + '</span><b>' + dd.getDate() + '</b><span>' + MON[dd.getMonth()] + '</span></div><div class="kb k-' + x.kind + '"></div><div class="grow"><div class="name">' + esc(x.what) + '</div>' + (function(sub){ return sub ? '<div class="tiny muted">' + esc(sub) + '</div>' : ''; })([x.kind === 'game' && x.what !== 'Game' ? 'Game' : '', x.ko, x.sub].filter(Boolean).join(' · ')) + '</div></div>';
   }).join('');
   return h + '</section>';
 }
@@ -1086,19 +1095,46 @@ function vLinks(){
   }
   return h;
 }
-/* Squad list: main position (sets targets) and availability, for everyone at once. */
+/* Squad list: main position (sets targets), up to two more, and availability, for everyone at once. */
 var STATUSES = ['Available', 'Modified', 'Unavailable'];
+function posShort(o){ return String(o).replace(/^(\d+)\s+/, '$1 ').replace(/ (prop|flanker|centre|wing)$/i, function(m){ return m; }); }
+function sqPos(p){ var x = (S.sq || {})[p.name]; return x && x.pos ? x.pos : (p.pos3 || [p.pos || '', '', '']).filter(String); }
+function sqStatus(p){ var x = (S.sq || {})[p.name]; return x && x.status ? x.status : p.status; }
 function vSquadList(){
-  var C = S.coach, d = S.sq = S.sq || {};
-  var h = '<section class="card"><div class="h-sec">Squad list</div><div class="small muted" style="margin:-6px 0 12px">Main position sets each player’s targets. Players can also pick their own the first time they open their page. Modified = training with a niggle.</div>'
+  var C = S.coach; S.sq = S.sq || {}; S.sqOpen = S.sqOpen || {};
+  var mode = S.sqMode || 'player';
+  var h = '<div class="seg" style="margin-bottom:12px">' + [['player','By player'],['position','By position']].map(function(m){ return '<button class="' + (mode === m[0] ? 'on' : '') + '" onclick="S.sqMode=\'' + m[0] + '\';render()">' + m[1] + '</button>'; }).join('') + '</div>';
+  if (mode === 'position') return h + vByPosition();
+  var withPos = C.players.filter(function(p){ return sqPos(p).length; }).length;
+  h += '<section class="card"><div class="h-sec">Squad list</div><div class="small muted" style="margin:-6px 0 12px"><b style="color:var(--ink)">' + withPos + ' of ' + C.players.length + '</b> have a position. The main position sets each player’s targets; add up to two more they can cover. Modified = training with a niggle.</div>'
     + '<input class="inp" placeholder="Find a player" oninput="var q=this.value.toLowerCase();document.querySelectorAll(\'.sqr\').forEach(function(e){e.style.display=e.getAttribute(\'data-n\').indexOf(q)>=0?\'\':\'none\'})" style="margin-bottom:4px">';
   h += C.players.map(function(p){
-    var x = d[p.name] || {}, pos = 'pos' in x ? x.pos : p.pos, st = 'status' in x ? x.status : p.status;
-    return '<div class="sqr' + (d[p.name] ? ' chg' : '') + '" data-n="' + esc(p.name.toLowerCase()) + '"><div class="name">' + esc(p.name) + '</div>'
-      + '<select class="inp" data-p="' + esc(p.name) + '" data-k="pos" onchange="sqSet(this)"><option value="">No position yet</option>' + C.positions.map(function(o){ return '<option' + (o === pos ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>'
-      + '<select class="inp" data-p="' + esc(p.name) + '" data-k="status" onchange="sqSet(this)">' + STATUSES.map(function(o){ return '<option' + (o === st ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></div>';
+    var pos = sqPos(p), main = pos[0] || '', also = pos.slice(1), st = sqStatus(p), open = S.sqOpen[p.name];
+    var row = '<div class="sqr' + (S.sq[p.name] ? ' chg' : '') + '" data-n="' + esc(p.name.toLowerCase()) + '"><div class="name">' + esc(p.name) + '</div>'
+      + '<select class="inp" data-p="' + esc(p.name) + '" data-k="pos" onchange="sqMain(this)"><option value="">No position yet</option>' + C.positions.map(function(o){ return '<option' + (o === main ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>'
+      + '<select class="inp" data-p="' + esc(p.name) + '" data-k="status" onchange="sqSet(this)">' + STATUSES.map(function(o){ return '<option' + (o === st ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>'
+      + '<div class="also"><button class="linkbtn" data-p="' + esc(p.name) + '" onclick="S.sqOpen[this.getAttribute(\'data-p\')]=!S.sqOpen[this.getAttribute(\'data-p\')];render()">' + (also.length ? 'Also plays: ' + esc(also.join(', ')) : '+ Other positions') + (open ? ' ▴' : ' ▾') + '</button>';
+    if (open) row += '<div class="chips wrap" style="margin-top:6px">' + C.positions.filter(function(o){ return o !== main; }).map(function(o){ return '<button class="chip sm ' + (also.indexOf(o) >= 0 ? 'on' : '') + '" data-p="' + esc(p.name) + '" data-o="' + esc(o) + '" onclick="sqAlso(this)">' + esc(o) + '</button>'; }).join('') + '</div>';
+    return row + '</div></div>';
   }).join('');
   return h + '</section><div style="height:70px"></div>';
+}
+function sqPlayer(name){ return S.coach.players.filter(function(p){ return p.name === name; })[0]; }
+function sqMain(el){
+  var p = sqPlayer(el.getAttribute('data-p')), pos = sqPos(p), main = el.value;
+  var also = pos.slice(1).filter(function(o){ return o !== main; });
+  (S.sq[p.name] = S.sq[p.name] || {}).pos = [main].concat(also).filter(String);
+  if (!main) S.sq[p.name].pos = [];
+  render();
+}
+function sqAlso(el){
+  var p = sqPlayer(el.getAttribute('data-p')), o = el.getAttribute('data-o'), pos = sqPos(p), main = pos[0] || '', also = pos.slice(1);
+  if (!main) { toast('Pick their main position first.'); return; }
+  if (also.indexOf(o) >= 0) also = also.filter(function(x){ return x !== o; });
+  else if (also.length >= 2) { toast('Main position plus two more. Untick one first.'); return; }
+  else also.push(o);
+  (S.sq[p.name] = S.sq[p.name] || {}).pos = [main].concat(also);
+  render();
 }
 function sqSet(el){
   var p = el.getAttribute('data-p'), k = el.getAttribute('data-k');
@@ -1106,9 +1142,25 @@ function sqSet(el){
   var row = el.closest('.sqr'); if (row) row.classList.add('chg');
   updateSavebar();
 }
+/* Who can play where: for picking teams. Main position first, then players who can cover; unavailable players left out. */
+function vByPosition(){
+  var C = S.coach;
+  var avail = C.players.filter(function(p){ return sqStatus(p) !== 'Unavailable'; });
+  var h = '<section class="card"><div class="h-sec">Who can play where</div><div class="small muted" style="margin:-6px 0 12px">Available players only. <b style="color:var(--ink)">Bold</b> = their main position; the rest can cover. <span style="color:var(--amber)">Amber</span> = modified.</div>';
+  h += C.positions.map(function(o){
+    var mains = avail.filter(function(p){ return sqPos(p)[0] === o; }), cover = avail.filter(function(p){ return sqPos(p).indexOf(o) > 0; });
+    var chip = function(p, main){ var mod = sqStatus(p) === 'Modified'; return '<span class="tag" style="' + (main ? 'font-weight:700;' : 'background:transparent;border:1px solid var(--line);') + (mod ? 'color:var(--amber)' : '') + '">' + esc(p.name) + '</span>'; };
+    return '<div class="bp"><div class="bph"><b>' + esc(o) + '</b><span class="tiny ' + (mains.length ? 'muted' : '') + '" style="' + (mains.length ? '' : 'color:var(--red);font-weight:700') + '">' + (mains.length ? mains.length + ' main' + (cover.length ? ' · ' + cover.length + ' cover' : '') : (cover.length ? 'No main · ' + cover.length + ' cover' : 'Nobody yet')) + '</span></div>'
+      + '<div class="chips wrap">' + mains.map(function(p){ return chip(p, true); }).join('') + cover.map(function(p){ return chip(p, false); }).join('') + '</div></div>';
+  }).join('');
+  var none = avail.filter(function(p){ return !sqPos(p).length; }).length;
+  if (none) h += '<div class="small muted" style="margin-top:10px">' + none + ' available player' + (none === 1 ? ' has' : 's have') + ' no position yet. Add them under By player.</div>';
+  return h + '</section>';
+}
 function saveSquad(){
   var btn = document.getElementById('savebtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
   var changes = Object.keys(S.sq).map(function(n){ var x = S.sq[n]; return {name: n, pos: x.pos, status: x.status}; });
+  S.sqOpen = {};
   call('api_setPlayers', S.pin, changes).then(function(c){ S.coach = c; S.sq = {}; toast('Saved ' + changes.length + ' player' + (changes.length === 1 ? '' : 's') + ' ✓'); render(); refreshData(); })
     .catch(function(e){ toast(e.message); if (btn) { btn.disabled = false; btn.textContent = 'Save'; } });
 }
