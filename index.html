@@ -657,7 +657,7 @@ function vBoards(){
   var keys = [['Overall','Overall']].concat(q.tests.map(function(t){ return [t.key, t.label]; }));
   h += '<div class="chips" id="lbchips">' + keys.map(function(k){ return '<button class="chip ' + (b.key === k[0] ? 'on' : '') + '" data-k="' + esc(k[0]) + '" onclick="setBoard(\'key\',this.getAttribute(\'data-k\'))">' + esc(k[1]) + '</button>'; }).join('') + '</div>';
   h += '<div class="seg">' + ['Squad','Forwards','Backs'].map(function(g){ return '<button class="' + (b.grp === g ? 'on' : '') + '" onclick="setBoard(\'grp\',\'' + g + '\')">' + g + '</button>'; }).join('') + '</div>';
-  var rows = b.key === 'Overall' ? q.overall : (q.boards[b.key] || []);
+  var rows = b.key === 'Overall' ? q.overall : (q.boards[b.key] || []), any = rows.length;
   if (b.grp !== 'Squad') rows = rows.filter(function(r){ return r.u === b.grp; });
   var meName = S.me ? S.me.name : '';
   if (S.me && S.me.hidden) h += '<div class="small muted" style="margin:0 2px 10px">You’re off the leaderboards (your choice). Change it on <a href="javascript:void 0" onclick="go(\'me\')">your page</a>.</div>';
@@ -665,7 +665,7 @@ function vBoards(){
   var t = TM[b.key];
   var sub = b.key === 'Overall' ? 'Average of running, gym and power scores. 50 is the unit average.' : (t && t.dir < 0 ? 'Lower is better. Best result this season.' : 'Best result this season.');
   h += '<section class="card"><div class="h-sec">' + esc(title) + '</div><div class="small muted" style="margin:-6px 0 8px">' + esc(sub) + '</div>';
-  if (!rows.length) h += '<div class="empty"><div class="em">⏱️</div>' + (fresh() ? 'The boards fill up after the first testing day. Log a PB to get on one sooner.' : 'No results yet for this one.') + '</div>';
+  if (!rows.length) h += '<div class="empty"><div class="em">⏱️</div>' + (any ? 'No ' + b.grp.toLowerCase() + ' on this board yet. Log a PB to be the first.' : fresh() ? 'The boards fill up after the first testing day. Log a PB to get on one sooner.' : 'No results yet for this one.') + '</div>';
   else {
     var meIdx = -1;
     rows.forEach(function(r, i){ if (r.n === meName) meIdx = i; });
@@ -1025,7 +1025,7 @@ function submitPb(){
       + '<h2 style="margin-bottom:6px">' + (good ? 'NEW PB!' : r.auto ? 'LOGGED' : 'SENT TO COACH') + '</h2>'
       + '<div class="muted">' + esc(label(r.test)) + ' · <b style="color:var(--ink)">' + esc(fmtU(r.test, r.value)) + '</b></div>'
       + '<div class="small" style="margin:8px 0 ' + (r.auto ? '4px' : '16px') + '">' + esc(r.msg) + '</div>'
-      + (r.auto ? '<div class="tiny muted" style="margin-bottom:16px">It’s on your page now. The leaderboards catch up within 5 minutes.</div>' : '')
+      + (r.auto ? '<div class="tiny muted" style="margin-bottom:16px">' + (r.pb && !(S.me && S.me.hidden) ? 'It’s on your page and the leaderboards now.' : 'It’s on your page now.') + '</div>' : '')
       + (good ? '<a class="btn green wide" target="_blank" rel="noopener" href="' + waShare(share) + '">' + ic('share') + 'Share in the squad chat</a><div style="height:8px"></div>' : '')
       + '<button class="btn line wide" onclick="closePb();render()">Done</button></div>';
     document.getElementById('pbbody').innerHTML = h;
