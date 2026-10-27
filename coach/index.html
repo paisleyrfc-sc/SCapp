@@ -15,8 +15,7 @@
 <link rel="apple-touch-icon" href="../icons/coach-apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root{--navy:#162351;--navy2:#22336E;--red:#A81D22;--red2:#C0262C;--slate:#404F6F;--bg:#F2F3F7;--card:#FFFFFF;--line:#E2E5EE;--ink:#121933;--muted:#5C6582;--faint:#8A92AA;--tint:#E8EBF3;--green:#13704F;--greenbg:#E3F3EC;--amber:#8A5A00;--amberbg:#FFF2D6;--redbg:#FBE9EA;--gold:#C99A2E;--silver:#8E98AC;--bronze:#A86A3D;--r:14px;--safe:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -815,8 +814,15 @@ function spark(t){
   var last = pts[pts.length - 1];
   return '<svg class="spark" viewBox="0 0 ' + W + ' ' + H + '"><polyline fill="none" stroke="#162351" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" points="' + pts.map(function(p){ return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ') + '"/><circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="2.6" fill="#A81D22"/></svg>';
 }
+/* The chart library (radars only) loads when it's first needed, so it never slows the app opening. */
+var chartLoading = null;
+function withChart(cb){
+  if (window.Chart) return cb();
+  if (!chartLoading) chartLoading = new Promise(function(res, rej){ var s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+  chartLoading.then(cb, function(){ chartLoading = null; });
+}
 function drawRadars(){
-  if (!window.Chart) { setTimeout(function(){ if (S.view === 'me' && window.Chart) drawRadars(); }, 600); return; }
+  if (!window.Chart) { withChart(function(){ if (S.view === 'me' && S.me) drawRadars(); }); return; }
   var m = S.me;
   [['rd1','Running'],['rd2','Gym']].forEach(function(cfg){
     var cv = document.getElementById(cfg[0]); if (!cv) return;
@@ -993,6 +999,7 @@ function vCoach(){
       + '<div class="err" id="pinerr">' + esc(S.coachErr) + '</div><button class="btn navy wide" onclick="pinGo()">Open coach mode</button></section>';
   }
   var C = S.coach, h = '';
+  if (S.coachStale && S.pin) setTimeout(loadCoach, 0);
   var tabsC = [['testing','Testing day'],['inbox','PB inbox' + (C.waiting.length ? ' (' + C.waiting.length + ')' : '')],['squad','Squad list'],['roundup','Weekly roundup'],['links','Player links']];
   h += '<div class="chips">' + tabsC.map(function(t){ return '<button class="chip ' + (S.ctab === t[0] ? 'on' : '') + '" onclick="S.ctab=\'' + t[0] + '\';render()">' + t[1] + '</button>'; }).join('')
     + '<a class="chip" target="_blank" rel="noopener" href="' + esc(C.sheetUrl) + '">Coach sheet ↗</a></div>';
@@ -1011,9 +1018,21 @@ function pinGo(){
 }
 function loadCoach(){
   if (loadCoach._busy) return; loadCoach._busy = true;
-  call('api_coach', S.pin).then(function(c){ loadCoach._busy = false; S.coach = c; LS.set('prfc_pin', S.pin); LS.set('prfc_coachmode', '1'); if (!S.t.round) S.t.round = c.suggest || c.latest || c.rounds[0] || ''; restoreDraft(); render(); })
-    .catch(function(e){ loadCoach._busy = false; S.coachErr = e.message; S.pin = ''; LS.del('prfc_pin'); render(); });
+  call('api_coach', S.pin).then(function(c){
+    loadCoach._busy = false; S.coach = c; S.coachStale = false;
+    LS.set('prfc_pin', S.pin); LS.set('prfc_coachmode', '1');
+    try { LS.set('prfc_coach', JSON.stringify(c)); } catch(e){}
+    if (!S.t.round) S.t.round = c.suggest || c.latest || c.rounds[0] || '';
+    restoreDraft();
+    if (S.view !== 'coach' || typing() || dirtyCount() || regCount() || Object.keys(S.sq || {}).length) renderNav(); else render();
+  }).catch(function(e){
+    loadCoach._busy = false;
+    if (e.message === NOSIG && S.coach) { toast('No signal. Showing the last saved coach page.'); return; }
+    S.coachErr = e.message; S.pin = ''; S.coach = null; LS.del('prfc_pin'); LS.del('prfc_coach'); render();
+  });
 }
+// last copy of the coach page on this device (same device that already keeps the PIN)
+if (S.pin) { var lastCoach = saved('prfc_coach'); if (lastCoach && lastCoach.players) { S.coach = lastCoach; S.coachStale = true; } }
 var STN_ALL = 'All tests';
 function stationTests(){
   var C = S.coach;
