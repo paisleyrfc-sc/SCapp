@@ -463,13 +463,13 @@ function vHome(){
   h += '<div class="ctas"><button class="btn red" onclick="openPb()">' + ic('plus') + 'Log a PB</button>'
     + '<button class="btn line" onclick="go(\'' + (S.me || S.token ? 'me' : 'boards') + '\')">' + (S.me || S.token ? ic('user') + 'My page' : ic('trophy') + 'Leaderboards') + '</button></div>';
   if (fresh()) {
-    h += '<div class="cols"><div>' + whatsOn() + guides() + howItWorks() + '</div><div>';
+    h += '<div class="cols"><div>' + whatsOn() + fitnessChat() + guides() + howItWorks() + '</div><div>';
     h += firstPostsCard();
     if (q.feed.length) h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
     return h + '</div></div>';
   }
   h += '<div class="cols"><div>';
-  h += whatsOn() + guides();
+  h += whatsOn() + fitnessChat() + guides();
   // these two only show once there's something in them
   if (q.feed.length) h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
   if ((q.improved || []).length) h += '<section class="card"><div class="h-sec">Most improved' + (q.latest && q.previous ? '<span class="more" style="cursor:default;color:var(--muted)">' + esc(q.previous) + ' → ' + esc(q.latest.round) + '</span>' : '') + '</div>' + improvedList() + '</section>';
@@ -575,6 +575,12 @@ function addFun(){
     .catch(function(e){ btn.disabled = false; btn.textContent = 'Add to the board'; err.textContent = e.message; });
 }
 /* Guides the coaches share (Settings rows named "Guide: ..."), e.g. the in-season running plan. */
+/* The fitness chat (WhatsApp): PBs and gym chat, summed up in the main chat once a week. Only on a player's own link. */
+function fitnessChat(){
+  var u = S.me && S.me.fitnessChat;
+  if (!u) return '';
+  return '<section class="card"><a class="guide" target="_blank" rel="noopener" href="' + esc(u) + '"><span class="gi">💬</span><span class="grow"><b>Fitness chat</b><span class="tiny muted">Share PBs and gym chat on WhatsApp. The best bits go in the main chat each week.</span></span>' + ic('ext') + '</a></section>';
+}
 function guides(){
   var g = (S.squad && S.squad.guides) || [];
   if (!g.length) return '';
@@ -1035,7 +1041,9 @@ function submitPb(){
       + '<div class="muted">' + esc(label(r.test)) + ' · <b style="color:var(--ink)">' + esc(fmtU(r.test, r.value)) + '</b></div>'
       + '<div class="small" style="margin:8px 0 ' + (r.auto ? '4px' : '16px') + '">' + esc(r.msg) + '</div>'
       + (r.auto ? '<div class="tiny muted" style="margin-bottom:16px">' + (r.pb && !(S.me && S.me.hidden) ? 'It’s on your page and the leaderboards now.' : 'It’s on your page now.') + '</div>' : '')
-      + (good ? '<a class="btn green wide" target="_blank" rel="noopener" href="' + waShare(share) + '">' + ic('share') + 'Share in the squad chat</a><div style="height:8px"></div>' : '')
+      + (good ? '<a class="btn green wide" target="_blank" rel="noopener" href="' + waShare(share) + '">' + ic('share') + 'Share in the fitness chat</a>'
+        + (S.me && S.me.fitnessChat ? '<div class="tiny muted" style="margin-top:8px">Not in the fitness chat yet? <a target="_blank" rel="noopener" href="' + esc(S.me.fitnessChat) + '">Join it ›</a></div>' : '')
+        + '<div style="height:8px"></div>' : '')
       + '<button class="btn line wide" onclick="closePb();render()">Done</button></div>';
     document.getElementById('pbbody').innerHTML = h;
   }).catch(function(e){ slow(); err.textContent = e.message; go.disabled = false; go.textContent = 'Save PB'; });
@@ -1307,7 +1315,7 @@ function inboxAct(row, btn, act){
 }
 function vRoundup(){
   var C = S.coach;
-  return '<section class="card"><div class="h-sec">Weekly roundup</div><div class="small muted" style="margin:-6px 0 12px">Built from this week’s PBs and records. One tap posts it to the squad chat.</div>'
+  return '<section class="card"><div class="h-sec">Weekly roundup</div><div class="small muted" style="margin:-6px 0 12px">Built from this week’s PBs and records. Post it in the main chat once a week to sum up the fitness chat.</div>'
     + '<div class="pre" id="rutext">' + esc(C.roundup) + '</div><div class="ctas" style="margin:12px 0 0"><a class="btn green" target="_blank" rel="noopener" href="' + waShare(C.roundup) + '">' + ic('share') + 'Post to WhatsApp</a><button class="btn line" onclick="copyText(S.coach.roundup)">' + ic('copy') + 'Copy</button></div></section>';
 }
 function vLinks(){
@@ -1318,7 +1326,8 @@ function vLinks(){
   h += '<section class="card"><div class="h-sec">Personal links</div><div class="small muted" style="margin:-6px 0 12px">Each player’s private page. Send once by WhatsApp: tap, pick the player, send. Link passed around? Tap ↻ for a new one; the old one stops working.</div>'
     + '<input class="inp" placeholder="Find a player" oninput="var q=this.value.toLowerCase();document.querySelectorAll(\'.lk\').forEach(function(e){e.style.display=e.getAttribute(\'data-n\').indexOf(q)>=0?\'\':\'none\'})" style="margin-bottom:8px">';
   h += '<div class="list">' + C.players.map(function(p){
-    var msg = 'Hi ' + p.name.split(' ')[0] + ', here’s your Paisley RFC S&C page: scores, targets and radars. Save it to your home screen. ' + p.link;
+    var msg = 'Hi ' + p.name.split(' ')[0] + ', here’s your Paisley RFC S&C page: scores, targets and radars. Save it to your home screen. ' + p.link
+      + (C.fitnessChat ? ' Share your PBs in the fitness chat: ' + C.fitnessChat : '');
     var fresh = C.reset === p.name;
     return '<div class="item lk" data-n="' + esc(p.name.toLowerCase()) + '"' + (fresh ? ' style="background:#FFF6E0;border-radius:10px"' : '') + '><div class="av">' + esc(initials(p.name)) + '</div><div class="grow"><div class="name">' + esc(p.name) + '</div><div class="tiny muted">' + (fresh ? '<b style="color:var(--red)">New link made. Send it now.</b>' : esc(p.group || 'No position yet')) + '</div></div>'
       + '<button class="btn line sm" onclick="copyText(\'' + esc(p.link) + '\')" aria-label="Copy link">' + ic('copy') + '</button><a class="share" target="_blank" rel="noopener" href="' + waShare(msg) + '" aria-label="Send on WhatsApp">' + ic('share') + '</a>'
