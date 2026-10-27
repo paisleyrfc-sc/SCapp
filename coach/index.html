@@ -516,8 +516,8 @@ function fresh(){ var q = S.squad; return !q.latest && !q.feed.length && !q.reco
    Only coaches add results (from this page in coach mode), so every one is witnessed. */
 function vFun(){
   var q = S.squad, f = q.fun || [], coach = !!(S.pin && (S.coach || LS.get('prfc_coachmode')));
-  var h = '<section class="card hero"><div class="kick">' + esc(q.club) + '</div><div class="big">Just for fun</div><div class="meta">Bragging rights only. Nothing here counts towards your scores.</div></section>';
-  if (!f.length) return h + '<section class="card"><div class="empty"><div class="em">🍺</div>No boards yet. Coaches set them up on the Just for fun tab of the coach sheet.</div></section>';
+  var h = '';
+  if (!f.length) return '<section class="card"><div class="empty"><div class="em">🍺</div>No boards yet. Coaches set them up on the Just for fun tab of the coach sheet.</div></section>';
   if (coach) {
     var d = S.funDraft || {board: f[0].name};
     h += '<section class="card"><div class="h-sec">Add a result</div><div class="ctrls">'
