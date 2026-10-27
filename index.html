@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paisley RFC S&amp;C</title>
+<meta name="description" content="Paisley RFC strength and conditioning: leaderboards, club records, your own targets and radars, and the league table.">
+<meta name="theme-color" content="#162351">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Paisley S&amp;C">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--navy:#162351;--navy2:#22336E;--red:#A81D22;--red2:#C0262C;--slate:#404F6F;--bg:#F2F3F7;--card:#FFFFFF;--line:#E2E5EE;--ink:#121933;--muted:#5C6582;--faint:#8A92AA;--tint:#E8EBF3;--green:#13704F;--greenbg:#E3F3EC;--amber:#8A5A00;--amberbg:#FFF2D6;--redbg:#FBE9EA;--gold:#C99A2E;--silver:#8E98AC;--bronze:#A86A3D;--r:14px;--safe:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Roboto,system-ui,-apple-system,Segoe UI,sans-serif;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--red);text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:0 14px}
+.top{background:var(--navy);color:#fff;position:sticky;top:0;z-index:20;border-bottom:3px solid var(--red)}
+.topin{display:flex;align-items:center;gap:12px;height:62px}
+.crest{width:40px;height:40px;object-fit:contain;flex:none}
+.brand{line-height:1.1;min-width:0}
+.club{font-family:Orbitron,Roboto,sans-serif;font-weight:800;letter-spacing:.06em;font-size:17px;white-space:nowrap}
+.sub{font-size:12px;color:#C9D0E6;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dnav{margin-left:auto;display:none;gap:4px}
+.dnav button{background:none;border:0;color:#C9D0E6;padding:9px 14px;border-radius:999px;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:7px}
+.dnav button.on{background:rgba(255,255,255,.12);color:#fff}
+.dnav button:hover{color:#fff}
+main.wrap{padding-top:16px;padding-bottom:calc(92px + var(--safe))}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:var(--safe)}
+.bnav button{flex:1;background:none;border:0;padding:8px 0 9px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:500;color:var(--faint);cursor:pointer}
+.bnav button.on{color:var(--red)}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.dnav .ico{width:18px;height:18px}
+h1,h2,h3{margin:0}
+.h-sec{font-family:Orbitron,Roboto,sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy);display:flex;align-items:center;gap:8px;margin:0 0 12px}
+.h-sec .more{margin-left:auto;font-family:Roboto,sans-serif;letter-spacing:0;text-transform:none;font-size:13px;font-weight:500;color:var(--red);cursor:pointer;background:none;border:0;padding:0}
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:14px;border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.tiny{font-size:12px}
+.hero{background:var(--navy);color:#fff;border:0;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;border:22px solid rgba(255,255,255,.05)}
+.kick{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#AEB8D8;font-weight:500}
+.hero .big{font-family:Orbitron,Roboto,sans-serif;font-weight:700;font-size:19px;margin:6px 0 2px;line-height:1.25}
+.hero .meta{color:#C9D0E6;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.stat{background:rgba(255,255,255,.08);border-radius:10px;padding:10px}
+.stat b{display:block;font-size:20px;font-weight:700}
+.stat span{font-size:11px;color:#C9D0E6}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;text-decoration:none;font-size:15px}
+.btn.red{background:var(--red);color:#fff}
+.btn.red:active{background:var(--red2)}
+.btn.navy{background:var(--navy);color:#fff}
+.btn.ghost{background:var(--tint);color:var(--navy)}
+.btn.line{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.btn.green{background:var(--green);color:#fff}
+.btn.sm{padding:8px 12px;font-size:13px;border-radius:10px}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.55;cursor:default}
+.ctas{display:flex;gap:10px;margin-bottom:14px}
+.ctas .btn{flex:1}
+.list{display:flex;flex-direction:column}
+.item{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0;padding-top:0}
+.item:last-child{padding-bottom:0}
+.av{width:36px;height:36px;border-radius:50%;background:var(--tint);color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
+.grow{flex:1;min-width:0}
+.name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.right{text-align:right;flex:none}
+.val{font-weight:700;font-variant-numeric:tabular-nums}
+.share{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#E7F6EE;color:#128C4B;flex:none}
+.share .ico{width:18px;height:18px}
+.recs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.rec{border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
+.rec .lab{font-size:12px;color:var(--muted);font-weight:500}
+.rec .v{font-size:20px;font-weight:700;color:var(--navy);margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.rec .who{font-size:12px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;color:var(--slate)}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.seg{display:flex;background:var(--tint);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:none;padding:8px 6px;border-radius:9px;font-weight:500;font-size:13px;color:var(--slate);cursor:pointer}
+.seg button.on{background:#fff;color:var(--navy);box-shadow:0 1px 2px rgba(18,25,51,.12)}
+.lb{display:flex;flex-direction:column}
+.lbr{display:flex;align-items:center;gap:12px;padding:11px 4px;border-top:1px solid var(--line)}
+.lbr:first-child{border-top:0}
+.lbr.me{background:#FFF6E0;border-radius:10px;border-top-color:transparent}
+.rk{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--slate);background:var(--tint);flex:none}
+.rk.g1{background:var(--gold);color:#fff}.rk.g2{background:var(--silver);color:#fff}.rk.g3{background:var(--bronze);color:#fff}
+.lbv{font-size:17px}
+.pill{display:inline-block;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:700;white-space:nowrap}
+.pill.ok{background:var(--greenbg);color:var(--green)}
+.pill.close{background:var(--amberbg);color:var(--amber)}
+.pill.low{background:var(--redbg);color:var(--red)}
+.pill.none{background:var(--tint);color:var(--muted)}
+.bars .row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.bars .row:first-child{border-top:0}
+.bar{height:9px;background:var(--tint);border-radius:9px;overflow:hidden;position:relative}
+.bar i{display:block;height:100%;border-radius:9px}
+.bpair{display:grid;grid-template-columns:1fr 38px;gap:6px;align-items:center;font-size:12px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.tile .lab{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.tile .num{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1;margin:4px 0 8px}
+.tile.main{background:var(--navy);color:#fff;border:0}
+.tile.main .lab{color:#AEB8D8}
+.tile.main .bar{background:rgba(255,255,255,.15)}
+.mehead{display:flex;align-items:center;gap:14px}
+.mehead .av{width:54px;height:54px;font-size:19px;background:var(--red);color:#fff}
+.mehead h1{font-size:22px;line-height:1.15}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{background:var(--tint);color:var(--navy);font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px}
+.trow{display:flex;gap:10px;padding:12px 0;border-top:1px solid var(--line);align-items:center}
+.trow:first-child{border-top:0;padding-top:2px}
+.tname{font-size:13px;color:var(--muted);font-weight:500}
+.tval{font-size:19px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:8px;margin:1px 0}
+.tsub{font-size:12px;color:var(--muted)}
+.cathd{font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 2px}
+.h-sec + .cathd{margin-top:0}
+.cathd + .trow{border-top:0;padding-top:4px}
+.tright{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
+.rlist .item{padding:9px 0}
+.rlist .rv{font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums}
+.fsum{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:12px}
+.fsum .u{background:#F7F8FB;border:1px solid var(--line);border-radius:12px;padding:12px}
+.fsum .u b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.fsum .u div{display:flex;justify-content:space-between;font-size:14px;padding:3px 0}
+.linkbtn{background:none;border:0;color:var(--red);font-weight:500;padding:6px 0;cursor:pointer;font-size:14px}
+.tg{margin-bottom:8px}
+.tgl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.tgc{display:flex;flex-wrap:wrap;gap:6px}
+.pbt{padding:7px 11px}
+.spark{width:74px;height:24px;display:block}
+.delta{font-size:12px;font-weight:700}
+.delta.up{color:var(--green)}.delta.dn{color:var(--red)}
+.focus{display:flex;flex-direction:column;gap:8px}
+.focus .f{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:var(--redbg)}
+.focus .f b{color:var(--red);font-size:15px}
+.radars{display:grid;grid-template-columns:1fr;gap:14px}
+.radar{position:relative}
+.radar h3{font-size:14px;color:var(--navy);margin-bottom:6px}
+.empty{text-align:center;padding:22px 10px;color:var(--muted)}
+.empty .em{font-size:30px;margin-bottom:6px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field label{font-size:13px;font-weight:500;color:var(--slate)}
+.inp{width:100%;border:1px solid #CCD2E0;border-radius:12px;padding:12px;background:#fff;font-size:16px;outline:none}
+.inp:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(22,35,81,.12)}
+.err{color:var(--red);font-size:13px;margin:-4px 0 10px;min-height:0}
+.hint{font-size:12px;color:var(--muted)}
+.overlay{position:fixed;inset:0;background:rgba(10,14,30,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:18px 18px calc(18px + var(--safe));max-height:92vh;overflow:auto}
+.sheet .grab{width:40px;height:4px;border-radius:4px;background:#D5DAE6;margin:0 auto 12px}
+.sheet h2{font-family:Orbitron,Roboto,sans-serif;font-size:17px;color:var(--navy);margin-bottom:14px}
+.done{text-align:center;padding:10px 0}
+.done .tick{width:64px;height:64px;border-radius:50%;background:var(--greenbg);color:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:32px;font-weight:700}
+.done .tick.wait{background:var(--amberbg);color:var(--amber)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + var(--safe));background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+.notice{background:var(--amberbg);color:var(--amber);border-radius:12px;padding:12px;font-size:14px;margin-bottom:14px}
+.ctrls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ctrls .field{margin-bottom:8px}
+.prow{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.prow.dirty{border-color:var(--navy);box-shadow:0 0 0 2px rgba(22,35,81,.08)}
+.prow.full .pn:after{content:"✓";color:var(--green);margin-left:6px;font-weight:700}
+.prow.unav{opacity:.55}
+.pn{font-weight:700;display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.pn small{font-weight:400;color:var(--muted);font-size:12px}
+.pins{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.pf{display:flex;flex-direction:column;gap:3px}
+.pf span{font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf input{border:1px solid #CCD2E0;border-radius:10px;padding:10px 8px;font-size:16px;width:100%;font-variant-numeric:tabular-nums;outline:none;background:#fff}
+.pf input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(22,35,81,.12)}
+.pf input.chg{background:#EEF1FA;border-color:var(--navy)}
+.pf input.warn{background:var(--amberbg);border-color:#D9A43A}
+.savebar{position:fixed;left:0;right:0;bottom:calc(58px + var(--safe));z-index:25;padding:10px 14px;background:rgba(242,243,247,.94);backdrop-filter:blur(6px);border-top:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.savebar .grow{font-size:13px;color:var(--slate)}
+.inb{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.inb .top2{display:flex;align-items:center;gap:10px}
+.inb .acts{display:flex;gap:8px;margin-top:10px}
+.inb .acts .btn{flex:1}
+.chk{font-size:13px;margin-top:6px;font-weight:500}
+.chk.ok{color:var(--green)}.chk.bad{color:var(--amber)}
+.pre{white-space:pre-wrap;background:#F7F8FB;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14px;line-height:1.5}
+.badge{background:var(--red);color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:1px 7px;margin-left:4px}
+.sk{background:linear-gradient(90deg,#ECEEF4,#F6F7FA,#ECEEF4);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:10px;height:16px;margin:8px 0}
+@keyframes sk{to{background-position:-200% 0}}
+.foot{text-align:center;color:var(--faint);font-size:12px;margin:18px 0 8px}
+.how{display:flex;gap:12px;align-items:flex-start;padding:10px 0}
+.how+.how{border-top:1px solid var(--line)}
+.how>b{flex:none;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:1px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;margin-bottom:6px}
+.cal .h{font-size:10px;color:var(--faint);font-weight:700;letter-spacing:.04em;padding-bottom:2px}
+.cal .d{padding:6px 0 4px;border-radius:9px;font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cal .d.past{color:#B4BACB}
+.cal .d.today{background:var(--navy);color:#fff;font-weight:700}
+.cal .dots{display:flex;gap:3px;justify-content:center;height:6px;margin-top:3px}
+.cal .dots i{width:6px;height:6px;border-radius:50%}
+.k-game{background:var(--red)}.k-testing{background:var(--navy)}.k-session{background:var(--gold)}
+.cal .d.today .k-testing{background:#fff}
+.ag{display:flex;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.ag .dt{flex:none;width:46px;text-align:center;border-radius:10px;padding:5px 0;background:var(--tint);line-height:1.1}
+.ag .dt b{display:block;font-size:17px;color:var(--navy)}.ag .dt span{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase}
+.ag .kb{width:4px;align-self:stretch;border-radius:4px;flex:none}
+.legend2{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:4px 0 2px}
+.legend2 span{display:inline-flex;align-items:center;gap:5px}.legend2 i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.tag.sl{background:#FFF2D6;color:#8A5A00}.tag.ck{background:var(--greenbg);color:var(--green)}
+.privacy ul{margin:8px 0 12px 18px;padding:0}.privacy li{margin:6px 0}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.choice .btn{white-space:normal;line-height:1.25}
+.banner{position:fixed;left:12px;right:12px;bottom:calc(76px + var(--safe));z-index:30;background:var(--ink);color:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.2);font-size:13px;max-width:560px;margin:0 auto}
+.banner a{color:#fff;font-weight:700}
+.csum{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.csum .c{flex:1 1 140px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.csum .c b{display:block;font-size:18px;color:var(--navy)}.csum .c span{font-size:12px;color:var(--muted)}
+#printarea{display:none}
+.sqr{display:grid;grid-template-columns:1.4fr 1fr;gap:6px 8px;padding:10px 0;border-top:1px solid var(--line);align-items:center}
+.sqr .name{grid-column:1/-1}
+.sqr select.inp{padding:8px 10px;font-size:14px}
+.sqr.chg .name{color:var(--navy)}.sqr.chg select{border-color:var(--navy)}
+@media (min-width:720px){.sqr{grid-template-columns:1.2fr 1.4fr 1fr}.sqr .name{grid-column:auto}}
+@media print{
+  body.printing>*:not(#printarea){display:none!important}
+  body.printing #printarea{display:block}
+  body.printing{background:#fff}
+  .pp{page-break-after:always;font-family:Roboto,Arial,sans-serif;color:#000}
+  .pp h1{font-size:16px;margin:0 0 4px;letter-spacing:.06em}
+  .pp .meta2{font-size:12px;margin:0 0 10px}
+  .pp table{width:100%;border-collapse:collapse;font-size:12px}
+  .pp th,.pp td{border:1px solid #777;padding:5px 6px;text-align:left}
+  .pp td{height:24px}
+  .pp th{background:#eee}
+}
+.btn.lite{background:transparent;border:1px solid transparent;color:var(--muted);padding-left:8px;padding-right:8px}
+.btn.sure{background:var(--red);border-color:var(--red);color:#fff}
+.lg{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.lg th{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:6px 4px;text-align:center;border-bottom:1px solid var(--line)}
+.lg td{padding:10px 4px;text-align:center;border-bottom:1px solid var(--line);font-size:14px}
+.lg .t{text-align:left}
+.lg td.pos{width:24px;color:var(--muted);font-weight:700}
+.lg td.t{font-weight:500;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.lg td.pts{font-weight:800;color:var(--navy)}
+.lg tr.us td{background:#FFF6E0}
+.lg tr.us td.t{font-weight:700;color:var(--red)}
+.res{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;border-radius:6px;font-weight:800;font-size:12px;padding:0 6px}
+.res.rW{background:var(--greenbg);color:var(--green)}.res.rL{background:var(--redbg);color:var(--red)}.res.rD{background:var(--amberbg);color:var(--amber)}.res.rP{background:var(--tint);color:var(--muted)}
+@media (min-width:720px){
+  .lg td.t{max-width:none}
+  .recs{grid-template-columns:repeat(3,1fr)}
+  .fsum{grid-template-columns:1fr 1fr}
+  .tiles{grid-template-columns:repeat(4,1fr)}
+  .radars{grid-template-columns:1fr 1fr}
+  .sheet{border-radius:20px;margin-bottom:6vh}
+  .overlay{align-items:center}
+}
+@media (min-width:960px){
+  .dnav{display:flex}
+  .bnav{display:none}
+  main.wrap{padding-bottom:40px}
+  #prows{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  #prows .prow{margin:0}
+  .savebar{bottom:0}
+  .toast{bottom:28px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+  .cols>div>.card:last-child{margin-bottom:14px}
+  .club{font-size:19px}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin">
+  <img class="crest" id="crest" alt="">
+  <div class="brand"><div class="club">PAISLEY RFC</div><div class="sub" id="sub">S&amp;C</div></div>
+  <nav class="dnav" id="dnav"></nav>
+</div></header>
+<main class="wrap" id="view"></main>
+<nav class="bnav" id="bnav"></nav>
+<div id="modal"></div>
+<div id="banner"></div>
+<div id="printarea"></div>
+<div class="toast" id="toast"></div>
+<script>
+var B = /*BOOT*/null;
+// The page runs two ways: inside Google's link (data comes with the page) or as the club web page (data comes from this script URL).
+var API = 'https://script.google.com/macros/s/AKfycbwoXuRTZ2xryCegThEj7ZcfGcWf8KRR27_PZTU8IT8B-xTBFS6xBKpWfF6z2wBhfwxBSQ/exec';
+var GAS = !!(window.google && google.script && google.script.run);
+if (!B) B = webBoot();
+function webBoot(){
+  var q = new URLSearchParams(location.search), path = location.pathname;
+  var isCoach = /\/coach\/?(index\.html)?$/.test(path);
+  var base = location.origin + path.replace(/coach\/?(index\.html)?$/, '').replace(/index\.html$/, '');
+  return {web: true, appUrl: base, coach: isCoach || q.has('coach'), token: (q.get('p') || '').trim()};
+}
+var ICONS = {
+  home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+  trophy: '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  clip: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 11h6M9 15h4"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  share: '<path d="M4 20l1.4-4A8 8 0 1 1 8 19.6L4 20z"/>',
+  ext: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+  copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+  table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/>',
+  reset: '<path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/>'
+};
+function ic(n){ return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[n] + '</svg>'; }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+var LS = {
+  get: function(k){ try { return window.localStorage.getItem(k); } catch(e){ return null; } },
+  set: function(k,v){ try { window.localStorage.setItem(k,v); } catch(e){} },
+  del: function(k){ try { window.localStorage.removeItem(k); } catch(e){} }
+};
+var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var DAY = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function todayIso(){ var d = new Date(); return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2); }
+function dShort(iso){ if(!iso) return ''; var p = iso.split('-'); return Number(p[2]) + ' ' + MON[Number(p[1])-1]; }
+function dLong(iso){ if(!iso) return ''; var p = iso.split('-'); var d = new Date(Number(p[0]), Number(p[1])-1, Number(p[2])); return DAY[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()]; }
+function initials(n){ return String(n||'').split(/\s+/).filter(Boolean).slice(0,2).map(function(x){ return x[0]; }).join('').toUpperCase(); }
+
+function saved(k){ try { return JSON.parse(LS.get(k) || 'null'); } catch(e){ return null; } }
+var S = {
+  view: 'home', squad: B.squad || null, me: B.me || null, league: B.league || null,
+  token: B.token || LS.get('prfc_token') || '', pin: LS.get('prfc_pin') || '',
+  coach: null, coachErr: '', ctab: 'testing',
+  board: {key: 'Overall', grp: 'Squad'},
+  t: {round: '', station: 'Sprints', date: todayIso(), q: '', dirty: {}},
+  busy: false
+};
+// On the club web page, show the last copy straight away (and when there is no signal), then refresh it.
+if (B.web) {
+  if (!S.squad) S.squad = saved('prfc_squad');
+  if (!S.league) S.league = saved('prfc_league');
+  var lastMe = saved('prfc_me');
+  if (!S.me && S.token && lastMe && lastMe.token === S.token) S.me = lastMe.me;
+}
+if (B.token && B.me) LS.set('prfc_token', B.token);
+if (B.badToken) { LS.del('prfc_token'); S.token = ''; S.linkGone = true; }
+if (B.coach) { S.view = 'coach'; LS.set('prfc_coachmode', '1'); }
+else if (B.me || (B.web && B.token)) S.view = 'me';
+var TM = {};
+function indexTests(){ TM = {}; if (!S.squad) return; S.squad.tests.forEach(function(t){ TM[t.key] = t; }); S.squad.pbTests.forEach(function(t){ if (!TM[t.key]) TM[t.key] = t; }); }
+indexTests();
+function appUrl(){ return (S.squad && S.squad.appUrl) || B.appUrl; }
+
+var NOSIG = 'No signal right now. Nothing is lost: try again when you’re back online.';
+function call(fn){
+  var args = Array.prototype.slice.call(arguments, 1);
+  if (GAS) return new Promise(function(res, rej){
+    var r = google.script.run.withSuccessHandler(res).withFailureHandler(function(e){
+      var m = e && e.message ? e.message : String(e);
+      rej(new Error(/NetworkError|HTTP 0|Failed to fetch|connection/i.test(m) ? NOSIG : m));
+    });
+    r[fn].apply(r, args);
+  });
+  return fetch(API, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({fn: fn, args: args})})
+    .then(function(r){ return r.text(); }, function(){ throw new Error(NOSIG); })
+    .then(function(t){
+      var j; try { j = JSON.parse(t); } catch(e){ throw new Error('The app had a hiccup. Try again in a moment.'); }
+      if (!j.ok) throw new Error(j.error || 'Something went wrong.');
+      return j.data;
+    });
+}
+function keep(){
+  if (!B.web) return;
+  try {
+    if (S.squad) LS.set('prfc_squad', JSON.stringify(S.squad));
+    if (S.league) LS.set('prfc_league', JSON.stringify(S.league));
+    if (S.me && S.token) LS.set('prfc_me', JSON.stringify({token: S.token, me: S.me}));
+  } catch(e){}
+}
+function typing(){ var a = document.activeElement; return !!(a && /INPUT|SELECT|TEXTAREA/.test(a.tagName) && a.closest('#view')); }
+function toast(msg){ var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('on'); }, Math.max(2600, String(msg).length * 60)); }
+
+function fmt(key, v){
+  if (v == null || v === '') return '–';
+  var t = TM[key] || {};
+  if (t.mss) { var s = Math.round(v); return Math.floor(s/60) + ':' + ('0' + (s%60)).slice(-2); }
+  var f = t.fmt || '0.#';
+  if (f === '0.00') return v.toFixed(2);
+  if (f === '0.0') return v.toFixed(1);
+  if (f === '0') return String(Math.round(v));
+  return String(Math.round(v*10)/10);
+}
+function unitOf(key){ var t = TM[key] || {}; if (t.mss || !t.unit) return ''; return t.unit === 'reps' ? ' reps' : ' ' + t.unit; }
+function fmtU(key, v){ var b = fmt(key, v); return b === '–' ? b : b + unitOf(key); }
+function label(key){ return (TM[key] && TM[key].label) || key; }
+function waShare(text){ return 'https://wa.me/?text=' + encodeURIComponent(text); }
+
+/* ---------------- navigation ---------------- */
+function tabs(){
+  var t = [['home','Squad','home'],['boards','Leaders','trophy'],['league','League','table'],['me','My page','user']];
+  if (B.coach || S.pin || LS.get('prfc_coachmode')) t.push(['coach','Coach','clip']);
+  return t;
+}
+function go(v){ S.view = v; render(); window.scrollTo(0,0); }
+function renderNav(){
+  var waiting = S.coach ? S.coach.waiting.length : 0;
+  var h = tabs().map(function(t){
+    var b = (t[0] === 'coach' && waiting) ? '<span class="badge">' + waiting + '</span>' : '';
+    return '<button class="' + (S.view === t[0] ? 'on' : '') + '" onclick="go(\'' + t[0] + '\')">' + ic(t[2]) + '<span>' + t[1] + b + '</span></button>';
+  }).join('');
+  document.getElementById('bnav').innerHTML = h;
+  document.getElementById('dnav').innerHTML = h;
+}
+var charts = [];
+function render(){
+  charts.forEach(function(c){ try { c.destroy(); } catch(e){} }); charts = [];
+  renderNav();
+  var v = document.getElementById('view');
+  if (B.error && !S.squad) { v.innerHTML = '<div class="card"><div class="empty"><div class="em">⚠️</div><b>Could not load the squad data.</b><div class="small" style="margin-top:6px">' + esc(B.error) + '</div>' + (B.web ? '<button class="btn navy" style="margin-top:14px" onclick="B.error=\'\';render();boot()">Try again</button>' : '') + '</div></div>'; return; }
+  if (!S.squad) { v.innerHTML = '<section class="card hero"><div class="sk" style="width:30%;opacity:.25"></div><div class="sk" style="width:60%;height:26px;opacity:.25"></div><div class="sk" style="width:45%;opacity:.25"></div></section><section class="card"><div class="sk" style="width:40%"></div><div class="sk"></div><div class="sk"></div><div class="sk" style="width:70%"></div></section>'; return; }
+  var html = S.view === 'boards' ? vBoards() : S.view === 'league' ? vLeague() : S.view === 'me' ? vMe() : S.view === 'coach' ? vCoach() : vHome();
+  v.innerHTML = html + '<div class="foot">Paisley RFC S&amp;C · ' + esc((S.squad && S.squad.season) || '') + ' · <a href="javascript:void 0" onclick="openPrivacy(false)" style="color:inherit">Privacy</a></div>';
+  if (S.view === 'me' && S.me) drawRadars();
+  updateSavebar();
+  if (needsPrivacy() && !document.getElementById('modal').innerHTML) openPrivacy(true);
+  privacyBanner();
+}
+
+/* ---------------- squad (home) ---------------- */
+function vHome(){
+  var q = S.squad, h = '';
+  var nx = q.next, ls = q.last, lt = q.latest;
+  h += '<section class="card hero">';
+  if (nx) h += '<div class="kick">Next game</div><div class="big">' + (nx.ha === 'Away' ? '@ ' : 'v ') + esc(nx.opp) + '</div><div class="meta">' + esc(dLong(nx.date)) + (nx.ko ? ' · ' + esc(nx.ko) : '') + (nx.comp ? ' · ' + esc(nx.comp) : '') + '</div>'
+    + (q.spond ? '<div class="meta" style="margin-top:6px"><a target="_blank" rel="noopener" href="' + esc(q.spond) + '" style="color:#fff;font-weight:700">Available? Say so on Spond ›</a></div>' : '');
+  else h += '<div class="kick">' + esc(q.club) + ' S&amp;C</div><div class="big">Squad hub</div>';
+  if (ls) h += '<div class="meta" style="margin-top:6px">Last time out: <b style="color:#fff">' + esc(ls.result) + '</b> ' + (ls.ha === 'Away' ? '@ ' : 'v ') + esc(ls.opp) + '</div>';
+  h += leagueLine();
+  if (lt && q.nextTesting) h += '<div class="meta" style="margin-top:6px">Next testing day: <b style="color:#fff">' + esc(dLong(q.nextTesting)) + '</b></div>';
+  h += '<div class="stats">'
+    + (lt ? '<div class="stat"><b>' + esc(lt.round) + '</b><span>Last testing · ' + esc(dShort(lt.date)) + '</span></div>'
+          + '<div class="stat"><b>' + lt.tested + '</b><span>Players tested</span></div>'
+          : '<div class="stat"><b>' + (q.nextTesting ? esc(dShort(q.nextTesting)) : 'TBC') + '</b><span>First testing day</span></div>'
+          + '<div class="stat"><b>' + (q.squadSize || q.players.length) + '</b><span>In the squad</span></div>')
+    + '<div class="stat"><b>' + q.pbsWeek + '</b><span>PBs this week</span></div></div></section>';
+  h += '<div class="ctas"><button class="btn red" onclick="openPb()">' + ic('plus') + 'Log a PB</button>'
+    + '<button class="btn line" onclick="go(\'' + (S.me || S.token ? 'me' : 'boards') + '\')">' + (S.me || S.token ? ic('user') + 'My page' : ic('trophy') + 'Leaderboards') + '</button></div>';
+  if (fresh()) {
+    h += '<div class="cols"><div>' + whatsOn() + howItWorks() + '</div><div>';
+    h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
+    return h + '</div></div>';
+  }
+  h += '<div class="cols"><div>';
+  h += whatsOn();
+  h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
+  h += '<section class="card"><div class="h-sec">Most improved' + (q.latest && q.previous ? '<span class="more" style="cursor:default;color:var(--muted)">' + esc(q.previous) + ' → ' + esc(q.latest.round) + '</span>' : '') + '</div>' + improvedList() + '</section>';
+  h += '</div><div>';
+  h += '<section class="card"><div class="h-sec">Club records <button class="more" onclick="go(\'boards\')">Leaderboards</button></div>' + recordsGrid() + '</section>';
+  h += '<section class="card"><div class="h-sec">Team check</div><div class="small muted" style="margin:-6px 0 10px">Share of players at the target for their position.</div>' + teamBars() + '</section>';
+  h += '</div></div>';
+  return h;
+}
+/* What's on: two-week mini calendar from the Season calendar and the fixtures, then the next few things. */
+var KIND = {game: ['Game', '🏉'], testing: ['Testing day', '⏱️'], session: ['Session', '💪']};
+function isoOf(d){ return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2); }
+function whatsOn(){
+  var q = S.squad, items = q.week || [], today = q.today || todayIso();
+  var t = new Date(Number(today.slice(0,4)), Number(today.slice(5,7)) - 1, Number(today.slice(8,10)));
+  var mon = new Date(t); mon.setDate(t.getDate() - ((t.getDay() + 6) % 7));
+  var byDay = {}; items.forEach(function(x){ (byDay[x.date] = byDay[x.date] || []).push(x.kind); });
+  var h = '<section class="card"><div class="h-sec">What’s on' + (q.spond ? '<a class="more" target="_blank" rel="noopener" href="' + esc(q.spond) + '">Book on Spond ›</a>' : '') + '</div>';
+  h += '<div class="cal">' + ['M','T','W','T','F','S','S'].map(function(d){ return '<div class="h">' + d + '</div>'; }).join('');
+  for (var i = 0; i < 14; i++) {
+    var d = new Date(mon); d.setDate(mon.getDate() + i);
+    var iso = isoOf(d), ks = byDay[iso] || [];
+    var uniq = ks.filter(function(k, j){ return ks.indexOf(k) === j; });
+    h += '<div class="d' + (iso === today ? ' today' : iso < today ? ' past' : '') + '">' + d.getDate() + '<div class="dots">' + uniq.map(function(k){ return '<i class="k-' + k + '"></i>'; }).join('') + '</div></div>';
+  }
+  h += '</div><div class="legend2"><span><i class="k-game"></i>Game</span><span><i class="k-testing"></i>Testing</span><span><i class="k-session"></i>Session</span></div>';
+  var next = items.filter(function(x){ return x.date >= today; }).slice(0, 5);
+  if (!next.length) h += '<div class="small muted" style="margin-top:8px">Nothing planned yet. Coaches add sessions and testing days on the Season calendar.</div>';
+  else h += next.map(function(x){
+    var p = x.date.split('-'), dd = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    return '<div class="ag"><div class="dt"><span>' + DAY[dd.getDay()] + '</span><b>' + dd.getDate() + '</b><span>' + MON[dd.getMonth()] + '</span></div><div class="kb k-' + x.kind + '"></div><div class="grow"><div class="name">' + esc(x.what) + '</div><div class="tiny muted">' + esc([x.what === KIND[x.kind][0] ? '' : KIND[x.kind][0], x.ko, x.sub].filter(Boolean).join(' · ')) + '</div></div></div>';
+  }).join('');
+  return h + '</section>';
+}
+/* A brand-new season: no testing results, records or PBs yet. */
+function fresh(){ var q = S.squad; return !q.latest && !q.feed.length && !q.records.some(function(x){ return x.v != null; }); }
+function howItWorks(){
+  var st = function(n, t, d){ return '<div class="how"><b>' + n + '</b><div><div class="name">' + t + '</div><div class="small muted">' + d + '</div></div></div>'; };
+  return '<section class="card"><div class="h-sec">How it works</div>'
+    + st(1, 'Testing day', 'Coaches put in your sprints, jumps, runs and lifts. Every result lands here on the day.')
+    + st(2, 'Log PBs any time', 'Hit a PB in the gym or on the track? Log it. Sensible ones count straight away.')
+    + st(3, 'Climb the boards', 'Leaderboards, club records, and your own radar against the targets for your position.')
+    + '<div class="tiny muted" style="margin-top:12px">Your own page comes as a private link from your coach. Open it once and this app remembers you.</div></section>';
+}
+function feedList(items){
+  if (!items.length) return '<div class="empty"><div class="em">💪</div>No PBs yet. Be the first: tap <b>Log a PB</b>.</div>';
+  var groups = [], idx = {};
+  items.forEach(function(f){
+    var k = f.src === 'Testing day' ? f.n + '|' + f.date : f.n + '|' + f.date + '|' + f.key;
+    if (idx[k] == null) { idx[k] = groups.length; groups.push([]); }
+    groups[idx[k]].push(f);
+  });
+  return '<div class="list">' + groups.slice(0, 8).map(function(g){
+    var f = g[0];
+    var msg = g.length > 1
+      ? '🏉 ' + g.length + ' new PBs for ' + f.n + ' at testing day: ' + g.map(function(x){ return label(x.key) + ' ' + fmtU(x.key, x.v); }).join(', ') + '. Paisley RFC S&C ' + appUrl()
+      : '🏉 New PB! ' + f.n + ' · ' + label(f.key) + ': ' + fmtU(f.key, f.v) + ' (was ' + fmtU(f.key, f.was) + '). Paisley RFC S&C ' + appUrl();
+    var what = g.length > 1
+      ? '<b style="color:var(--ink)">' + g.length + ' PBs</b> at testing day · ' + esc(g.slice(0, 2).map(function(x){ return label(x.key) + ' ' + fmtU(x.key, x.v); }).join(', ')) + (g.length > 2 ? '…' : '')
+      : esc(label(f.key)) + ' <b class="val" style="color:var(--ink)">' + esc(fmtU(f.key, f.v)) + '</b> · was ' + esc(fmtU(f.key, f.was));
+    var chk = g.length > 1 || f.src === 'Testing day' ? '' : f.sl ? ' <span class="tag sl">Self-logged</span>' : ' <span class="tag ck">Coach ✓</span>';
+    return '<div class="item"><div class="av">' + esc(initials(f.n)) + '</div><div class="grow"><div class="name">' + esc(f.n) + chk + '</div><div class="small muted">' + what + '</div></div>'
+      + '<div class="right tiny muted">' + esc(dShort(f.date)) + '</div><a class="share" target="_blank" rel="noopener" href="' + waShare(msg) + '" aria-label="Share on WhatsApp">' + ic('share') + '</a></div>';
+  }).join('') + '</div>';
+}
+function improvedList(){
+  var q = S.squad;
+  if (!q.improved.length) return '<div class="empty"><div class="em">📈</div>Shows up after the second testing day.</div>';
+  return '<div class="list">' + q.improved.slice(0, 6).map(function(x){
+    return '<div class="item"><div class="av">' + esc(initials(x.n)) + '</div><div class="grow"><div class="name">' + esc(x.n) + '</div><div class="small muted">' + esc(label(x.key)) + ' · ' + esc(fmtU(x.key, x.from)) + ' → ' + esc(fmtU(x.key, x.to)) + '</div></div><div class="right delta up">▲ ' + x.pct + '%</div></div>';
+  }).join('') + '</div>';
+}
+function recordsGrid(){
+  var r = S.squad.records.filter(function(x){ return x.v != null; });
+  if (!r.length) return '<div class="empty"><div class="em">🏆</div>Records fill in after the first testing day.</div>';
+  if (window.innerWidth < 720) return '<div class="list rlist">' + r.map(function(x){
+    return '<div class="item"><div class="grow"><div class="small muted">' + esc(x.label) + '</div><div class="name" style="font-weight:500">' + esc(x.n) + (x.sl ? ' <span class="tag sl">Self-logged</span>' : '') + '</div></div><div class="right"><div class="rv">' + esc(fmtU(x.key, x.v)) + '</div><div class="tiny muted">' + esc(dShort(x.date)) + '</div></div></div>';
+  }).join('') + '</div>';
+  return '<div class="recs">' + r.map(function(x){
+    return '<div class="rec"><div class="lab">' + esc(x.label) + '</div><div class="v">' + esc(fmtU(x.key, x.v)) + '</div><div class="who">' + esc(x.n) + '</div><div class="tiny muted">' + esc(dShort(x.date)) + (x.sl ? ' · self-logged' : '') + '</div></div>';
+  }).join('') + '</div>';
+}
+function teamBars(){
+  var rows = S.squad.team.filter(function(t){ return t.Forwards || t.Backs; });
+  if (!rows.length) return '<div class="empty"><div class="em">🎯</div>Needs testing results and positions on the Players tab.</div>';
+  var low = function(u){ return rows.filter(function(t){ return t[u] && t[u].pct < 100; }).sort(function(a, b){ return a[u].pct - b[u].pct; }).slice(0, 3); };
+  var sum = '<div class="fsum">' + ['Forwards','Backs'].map(function(u){
+    var l = low(u);
+    return '<div class="u"><b>' + u + ': work on</b>' + (l.length ? l.map(function(t){ return '<div><span>' + esc(t.label) + '</span><span class="val" style="color:' + (t[u].pct < 40 ? 'var(--red)' : 'var(--amber)') + '">' + t[u].pct + '% at target</span></div>'; }).join('') : '<div class="muted">' + (rows.some(function(t){ return t[u]; }) ? 'Everyone tested is at target' : 'No results yet') + '</div>') + '</div>';
+  }).join('') + '</div>';
+  if (!S.teamOpen) return sum + '<button class="linkbtn" onclick="S.teamOpen=true;render()">See every test ›</button>';
+  return sum + teamDetail(rows);
+}
+function teamDetail(rows){
+  var col = function(p){ return p >= 70 ? 'var(--green)' : p >= 40 ? '#C99A2E' : 'var(--red)'; };
+  var one = function(x){ return x ? '<div class="bpair"><div class="bar"><i style="width:' + x.pct + '%;background:' + col(x.pct) + '"></i></div><span class="val">' + x.pct + '%</span></div>' : '<div class="bpair"><div class="bar"></div><span class="muted">–</span></div>'; };
+  return '<div class="legend"><span>Top bar: forwards</span><span>Bottom bar: backs</span></div><div class="bars">' + rows.map(function(t){
+    return '<div class="row"><div class="small" style="font-weight:500">' + esc(t.label) + '</div><div>' + one(t.Forwards) + '<div style="height:4px"></div>' + one(t.Backs) + '</div></div>';
+  }).join('') + '</div>';
+}
+
+/* ---------------- leaderboards ---------------- */
+function vBoards(){
+  var q = S.squad, b = S.board, h = '';
+  var keys = [['Overall','Overall']].concat(q.tests.map(function(t){ return [t.key, t.label]; }));
+  h += '<div class="chips" id="lbchips">' + keys.map(function(k){ return '<button class="chip ' + (b.key === k[0] ? 'on' : '') + '" data-k="' + esc(k[0]) + '" onclick="setBoard(\'key\',this.getAttribute(\'data-k\'))">' + esc(k[1]) + '</button>'; }).join('') + '</div>';
+  h += '<div class="seg">' + ['Squad','Forwards','Backs'].map(function(g){ return '<button class="' + (b.grp === g ? 'on' : '') + '" onclick="setBoard(\'grp\',\'' + g + '\')">' + g + '</button>'; }).join('') + '</div>';
+  var rows = b.key === 'Overall' ? q.overall : (q.boards[b.key] || []);
+  if (b.grp !== 'Squad') rows = rows.filter(function(r){ return r.u === b.grp; });
+  var meName = S.me ? S.me.name : '';
+  if (S.me && S.me.hidden) h += '<div class="small muted" style="margin:0 2px 10px">You’re off the leaderboards (your choice). Change it on <a href="javascript:void 0" onclick="go(\'me\')">your page</a>.</div>';
+  var title = b.key === 'Overall' ? 'Overall score' : label(b.key);
+  var t = TM[b.key];
+  var sub = b.key === 'Overall' ? 'Average of running, gym and power scores. 50 is the unit average.' : (t && t.dir < 0 ? 'Lower is better. Best result this season.' : 'Best result this season.');
+  h += '<section class="card"><div class="h-sec">' + esc(title) + '</div><div class="small muted" style="margin:-6px 0 8px">' + esc(sub) + '</div>';
+  if (!rows.length) h += '<div class="empty"><div class="em">⏱️</div>' + (fresh() ? 'The boards fill up after the first testing day. Log a PB to get on one sooner.' : 'No results yet for this one.') + '</div>';
+  else {
+    var meIdx = -1;
+    rows.forEach(function(r, i){ if (r.n === meName) meIdx = i; });
+    var show = rows.slice(0, 25);
+    h += '<div class="lb">' + show.map(function(r, i){ return lbRow(r, i, b.key, r.n === meName); }).join('') + '</div>';
+    if (meIdx >= 25) h += '<div class="lb" style="margin-top:6px;border-top:2px dashed var(--line);padding-top:6px">' + lbRow(rows[meIdx], meIdx, b.key, true) + '</div>';
+    if (rows.length > 25) h += '<div class="tiny muted" style="margin-top:8px">Top 25 of ' + rows.length + '.</div>';
+    if (b.key !== 'Overall' && rows.some(function(r){ return r.sl; })) h += '<div class="tiny muted" style="margin-top:8px">Self-logged: a PB a player logged that a coach hasn’t checked yet. Testing-day results are always checked.</div>';
+  }
+  h += '</section>';
+  return h;
+}
+function lbRow(r, i, key, me){
+  var cls = i < 3 ? ' g' + (i+1) : '';
+  var ratio = me && key !== 'Overall' && TM[key] && TM[key].ratio && S.me && S.me.bw ? r.v / S.me.bw : null;
+  var v = key === 'Overall' ? '<span class="val lbv">' + r.v + '</span>' : '<span class="val lbv">' + esc(fmtU(key, r.v)) + '</span>' + (ratio ? '<div class="tiny muted">' + ratio.toFixed(2) + ' × your weight</div>' : '');
+  var sub = key === 'Overall' ? 'Run ' + (r.run == null ? '–' : r.run) + ' · Gym ' + (r.gym == null ? '–' : r.gym) + ' · Power ' + (r.pow == null ? '–' : r.pow) : (r.g || r.u || '') + (r.sl ? ' · self-logged' : '');
+  return '<div class="lbr' + (me ? ' me' : '') + '"><div class="rk' + cls + '">' + (i+1) + '</div><div class="grow"><div class="name">' + esc(r.n) + (me ? ' <span class="tag" style="margin-left:4px">You</span>' : '') + '</div><div class="tiny muted">' + esc(sub) + '</div></div><div class="right">' + v + '</div></div>';
+}
+function setBoard(k, v){ S.board[k] = v; render(); var c = document.getElementById('lbchips'); var on = c && c.querySelector('.on'); if (on && on.scrollIntoView) on.scrollIntoView({block:'nearest', inline:'center'}); }
+
+/* ---------------- league ---------------- */
+function leagueOld(){ var L = S.league; return !L || L.old || L.error || !L.fetched || (Date.now() - Date.parse(L.fetched)) > 30 * 60000; }
+function loadLeague(){
+  if (S.leagueBusy || !leagueOld()) return;
+  S.leagueBusy = true;
+  call('api_league').then(function(l){
+    var changed = !S.league || S.league.fetched !== l.fetched || !!S.league.old !== !!l.old;
+    S.league = l; S.leagueBusy = false; keep();
+    if (changed && (S.view === 'league' || S.view === 'home') && !typing()) render();
+  }).catch(function(e){
+    S.leagueBusy = false;
+    if (!S.league) { S.league = {error: e.message, headers: [], rows: [], fixtures: [], results: []}; if (S.view === 'league') render(); }
+  });
+}
+function shortTeam(n){ return String(n || '').replace(/ RFC$/, '').replace('University', 'Uni'); }
+function leagueRow(){
+  var L = S.league; if (!L || !L.rows || !L.rows.length) return null;
+  for (var i = 0; i < L.rows.length; i++) if (L.rows[i][0] === L.club) return {pos: i + 1, of: L.rows.length, pts: L.rows[i][L.rows[i].length - 1]};
+  return null;
+}
+function leagueLine(){
+  var r = leagueRow(); if (!r) return '';
+  return '<div class="meta" style="margin-top:6px;cursor:pointer" onclick="go(\'league\')">League: <b style="color:#fff">' + ordinal(r.pos) + ' of ' + r.of + '</b> · ' + esc(r.pts) + ' pts ›</div>';
+}
+function timeAgo(iso){ var m = Math.round((Date.now() - new Date(iso).getTime()) / 60000); if (!(m >= 0)) return ''; if (m < 1) return 'just now'; if (m < 60) return m + ' min ago'; var h = Math.round(m / 60); if (h < 24) return h + ' h ago'; return Math.round(h / 24) + ' days ago'; }
+function vLeague(){
+  var L = S.league;
+  if (!L) { loadLeague(); return '<section class="card"><div class="sk" style="width:40%"></div><div class="sk"></div><div class="sk"></div><div class="sk" style="width:70%"></div></section>'; }
+  var hd = (L.headers || []).map(function(x){ return String(x).toUpperCase(); });
+  var ix = function(n){ return hd.indexOf(n); };
+  var wide = window.innerWidth >= 720;
+  var cols = wide ? [['P','PLAYED'],['W','W'],['D','D'],['L','L'],['F','F'],['A','A'],['Diff','DIFF'],['TB','TB'],['LB','LB'],['Pts','POINTS']] : [['P','PLAYED'],['W','W'],['D','D'],['L','L'],['Diff','DIFF'],['Pts','POINTS']];
+  var h = '<section class="card"><div class="h-sec">League table</div><div class="small muted" style="margin:-6px 0 10px">' + esc(L.name || 'West Region League') + '</div>';
+  if (!L.rows || !L.rows.length) {
+    h += '<div class="empty"><div class="em">📡</div>Couldn’t reach the Scottish Rugby site just now.' + (L.url ? '<div class="small" style="margin-top:6px"><a target="_blank" rel="noopener" href="' + esc(L.url) + '">Open the table on scottishrugby.org</a></div>' : '') + '</div>';
+  } else {
+    var ti = ix('TEAM') < 0 ? 0 : ix('TEAM');
+    h += '<div style="overflow-x:auto"><table class="lg"><thead><tr><th></th><th class="t">Team</th>' + cols.map(function(c){ return '<th>' + c[0] + '</th>'; }).join('') + '</tr></thead><tbody>'
+      + L.rows.map(function(r, i){
+        var us = r[ti] === L.club;
+        return '<tr' + (us ? ' class="us"' : '') + '><td class="pos">' + (i + 1) + '</td><td class="t">' + esc(wide ? r[ti] : shortTeam(r[ti])) + '</td>'
+          + cols.map(function(c){ var k = ix(c[1]); return '<td' + (c[1] === 'POINTS' ? ' class="pts"' : '') + '>' + esc(k >= 0 ? r[k] : '') + '</td>'; }).join('') + '</tr>';
+      }).join('') + '</tbody></table></div>';
+    h += '<div class="tiny muted" style="margin-top:10px">' + (wide ? 'TB try bonus · LB losing bonus. ' : '') + 'From Scottish Rugby' + (L.fetched ? ', checked ' + timeAgo(L.fetched) : '') + (L.stale ? ' (their site is not answering, so this is the last copy)' : '') + '. <a target="_blank" rel="noopener" href="' + esc(L.url) + '">Open on scottishrugby.org</a></div>';
+  }
+  h += '</section><div class="cols"><div><section class="card"><div class="h-sec">Next league games</div>' + matchList(L.fixtures, false) + '</section></div>'
+    + '<div><section class="card"><div class="h-sec">League results</div>' + matchList(L.results, true) + '</section></div></div>';
+  return h;
+}
+function matchList(list, res){
+  if (!list || !list.length) return '<div class="empty small">' + (res ? 'No results yet.' : 'No fixtures listed.') + '</div>';
+  var club = S.league.club;
+  return '<div class="list">' + list.map(function(m){
+    var home = m.home === club, opp = home ? m.away : m.home, badge;
+    if (res) {
+      var sc = String(m.score || '').match(/(\d+)\s*-\s*(\d+)/);
+      if (sc) { var us = Number(home ? sc[1] : sc[2]), them = Number(home ? sc[2] : sc[1]), k = us > them ? 'W' : us < them ? 'L' : 'D'; badge = '<span class="res r' + k + '">' + k + '</span><span class="val">' + us + '–' + them + '</span>'; }
+      else badge = '<span class="res rP">' + esc(m.score || 'P') + '</span>';
+    } else badge = '<span class="small muted">' + esc(m.time || '') + '</span>';
+    return '<div class="item"><div class="grow"><div class="name">' + (home ? 'v ' : '@ ') + esc(opp) + '</div><div class="tiny muted">' + esc(m.date) + (m.info && m.info.length ? ' · ' + esc(m.info[0]) : '') + '</div></div><div class="right" style="display:flex;align-items:center;gap:8px">' + badge + '</div></div>';
+  }).join('') + '</div>';
+}
+
+/* ---------------- my page ---------------- */
+function vMe(){
+  if (!S.me) {
+    if (S.token) return '<section class="card"><div class="sk" style="width:50%"></div><div class="sk"></div><div class="sk" style="width:70%"></div></section>';
+    return '<section class="card"><div class="empty"><div class="em">🔒</div>'
+      + (S.linkGone ? '<b>That link doesn’t work any more.</b><div class="small" style="margin-top:6px">Your coach may have made you a new one. Ask them to send it on WhatsApp.</div>'
+                    : '<b>Your page has its own private link.</b><div class="small" style="margin-top:6px">Ask your coach to send it to you on WhatsApp. Open it once and this app remembers you.</div>')
+      + '</div></section>'
+      + '<button class="btn red wide" onclick="openPb()">' + ic('plus') + 'Log a PB</button>';
+  }
+  var m = S.me, h = '', sc = m.scores;
+  h += '<section class="card"><div class="mehead"><div class="av">' + esc(initials(m.name)) + '</div><div class="grow"><h1>' + esc(m.name) + '</h1><div class="tags">'
+    + (m.pos.length ? m.pos.map(function(p){ return '<span class="tag">' + esc(p.replace(/^\d+\s/, '')) + '</span>'; }).join('') : '<span class="tag">No position yet</span>')
+    + (m.unit ? '<span class="tag">' + esc(m.unit) + '</span>' : '') + (m.bw ? '<span class="tag">' + m.bw + ' kg</span>' : '') + '</div></div></div></section>';
+  if (m.needsPosition || m.needsBw) {
+    h += '<section class="card" style="border-color:#E6C77A;background:#FFFBF0"><div class="h-sec">Finish your profile</div><div class="small muted" style="margin:-6px 0 12px">So your targets match your position and size.</div>';
+    if (m.needsPosition) h += '<div class="field"><label for="setpos">Main position</label><select class="inp" id="setpos"><option value="">Pick your position</option>' + S.squad.positions.map(function(p){ return '<option>' + esc(p) + '</option>'; }).join('') + '</select></div>';
+    if (m.needsBw) h += '<div class="field"><label for="setbw">Body weight (kg)</label><input class="inp" id="setbw" inputmode="decimal" placeholder="e.g. 95"></div>';
+    h += '<div class="err" id="proferr"></div><button class="btn navy wide" onclick="saveProfile()">Save</button></section>';
+  }
+  var rk = sc.unitRank ? ordinal(sc.unitRank) + ' of ' + sc.unitSize + ' ' + (m.unit ? m.unit.toLowerCase() : 'players') : 'Not ranked yet';
+  h += '<div class="tiles">' + tile('Overall', sc.overall, rk, true) + tile('Running', sc.running) + tile('Gym', sc.gym) + tile('Power', sc.power) + '</div>';
+  h += '<div class="cols"><div>';
+  var below = m.tests.filter(function(t){ return t.pct != null && t.pct < 1; }).sort(function(a, b){ return a.pct - b.pct; }).slice(0, 3);
+  var tested = m.tests.filter(function(t){ return t.best != null; }).length;
+  h += '<section class="card"><div class="h-sec">Top 3 to work on</div>';
+  if (!tested) h += '<div class="empty"><div class="em">⏱️</div>Your targets show up after your first testing day or PB.</div>';
+  else if (!below.length) h += '<div class="empty"><div class="em">💪</div>Everything tested is at target. Keep it there.</div>';
+  else h += '<div class="focus">' + below.map(function(t){
+    return '<div class="f"><div class="grow"><div class="name">' + esc(label(t.key)) + '</div><div class="small muted">Best ' + esc(fmtU(t.key, t.best)) + ' · target ' + esc(fmtU(t.key, t.target)) + '</div></div><b>' + Math.round((1 - t.pct) * 100) + '% off</b></div>';
+  }).join('') + '</div>';
+  h += '</section>';
+  var hasCat = function(c){ return m.tests.some(function(t){ return t.best != null && (TM[t.key] || {}).cat === c; }); };
+  if (hasCat('Running') || hasCat('Gym')) h += '<section class="card"><div class="h-sec">Radars</div><div class="small muted" style="margin:-6px 0 10px">% of your position target. Navy ring = target. Further out is better.</div><div class="radars"><div class="radar"><h3>Running</h3><div style="position:relative;height:290px"><canvas id="rd1"></canvas></div></div><div class="radar"><h3>Gym</h3><div style="position:relative;height:290px"><canvas id="rd2"></canvas></div></div></div></section>';
+  else h += '<section class="card"><div class="h-sec">Radars</div><div class="empty"><div class="em">🎯</div>Your running and gym radars draw themselves after testing day, against the targets for your position.</div></section>';
+  h += '<section class="card"><div class="h-sec">My logged PBs</div>';
+  if (!m.logs.length) h += '<div class="empty small">Nothing logged yet.</div>';
+  else h += '<div class="list">' + m.logs.map(function(l){
+    return '<div class="item"><div class="grow"><div class="name">' + esc(label(l.test)) + ' · ' + esc(l.result) + '</div><div class="tiny muted">' + esc(dShort(l.date)) + '</div></div><span class="pill ' + (l.checked ? 'ok' : l.counted ? 'none' : 'close') + '">' + (l.checked ? 'Coach ✓' : l.counted ? 'Counted · not checked yet' : 'Waiting for coach') + '</span></div>';
+  }).join('') + '</div>';
+  h += '<button class="btn red wide" style="margin-top:12px" onclick="openPb()">' + ic('plus') + 'Log a PB</button></section>';
+  h += '</div><div>';
+  h += '<section class="card"><div class="h-sec">My tests</div>' + ['Running','Power','Gym'].map(function(c){
+    var ts = m.tests.filter(function(t){ return (TM[t.key] || {}).cat === c; });
+    return ts.length ? '<div class="cathd">' + c + '</div>' + ts.map(testRow).join('') : '';
+  }).join('') + '</section>';
+  h += '</div></div>';
+  h += '<section class="card"><div class="h-sec">Your data</div><div class="small">' + (m.hidden ? 'You’re <b>off</b> the leaderboards. Only you and the coaches see your results.' : 'You’re <b>on</b> the leaderboards, the PB feed and the club records.') + '</div>'
+    + '<div class="ctas" style="margin:10px 0 0"><button class="btn line sm" onclick="setBoards(' + (m.hidden ? 'true' : 'false') + ', this)">' + (m.hidden ? 'Put me on the boards' : 'Take me off the boards') + '</button><button class="btn lite sm" onclick="openPrivacy(false)">How we use data</button></div></section>';
+  h += '<div class="tiny muted" style="text-align:center;margin-top:10px">Tip: add this page to your home screen so it opens like an app.</div>';
+  return h;
+}
+function ordinal(n){ var s = ['th','st','nd','rd'], v = n % 100; return n + (s[(v-20)%10] || s[v] || s[0]); }
+function tile(lab, v, sub, main){
+  var w = v == null ? 0 : Math.max(4, Math.min(100, v));
+  var c = v == null ? 'transparent' : v >= 60 ? (main ? '#5BD3A0' : 'var(--green)') : v < 40 ? (main ? '#FF8A8E' : 'var(--red)') : (main ? '#fff' : 'var(--navy)');
+  return '<div class="tile' + (main ? ' main' : '') + '"><div class="lab">' + lab + '</div><div class="num">' + (v == null ? '–' : v) + '</div><div class="bar"><i style="width:' + w + '%;background:' + c + '"></i></div>' + (sub ? '<div class="tiny" style="margin-top:8px;opacity:.85">' + esc(sub) + '</div>' : '') + '</div>';
+}
+function testRow(t){
+  var st = t.best == null ? ['none','Not tested'] : t.pct == null ? ['none','No target'] : t.pct >= 1 ? ['ok','At target'] : t.pct >= 0.93 ? ['close','Close'] : ['low','Below'];
+  var tg = t.target == null ? (TM[t.key] && TM[t.key].ratio ? 'Target needs body weight' : '') : 'Target ' + fmtU(t.key, t.target) + (t.ratioTarget ? ' (' + t.ratioTarget + ' × BW)' : '');
+  var d = '';
+  if (t.latest != null && t.before != null && t.before) {
+    var dir = (TM[t.key] || {}).dir || 1, ch = dir * (t.latest - t.before) / t.before;
+    if (Math.abs(ch) >= 0.005) d = '<span class="delta ' + (ch > 0 ? 'up' : 'dn') + '">' + (ch > 0 ? '▲ ' : '▼ ') + Math.round(Math.abs(ch) * 100) + '%</span>';
+  }
+  return '<div class="trow"><div class="grow"><div class="tname">' + esc(label(t.key)) + '</div><div class="tval">' + esc(fmtU(t.key, t.best)) + d + '</div><div class="tsub">' + esc(tg) + (t.score != null ? ' · score ' + t.score : '') + '</div></div>'
+    + '<div class="tright"><span class="pill ' + st[0] + '">' + st[1] + '</span>' + spark(t) + '</div></div>';
+}
+function spark(t){
+  var hs = t.hist; if (!hs || hs.length < 2) return '<span class="spark"></span>';
+  var dir = (TM[t.key] || {}).dir || 1, vs = hs.map(function(x){ return x.v * dir; });
+  var mn = Math.min.apply(null, vs), mx = Math.max.apply(null, vs), W = 74, H = 24, P = 3;
+  var pts = vs.map(function(v, i){ var x = P + i * (W - 2*P) / (vs.length - 1); var y = mx === mn ? H/2 : H - P - (v - mn) * (H - 2*P) / (mx - mn); return [x, y]; });
+  var last = pts[pts.length - 1];
+  return '<svg class="spark" viewBox="0 0 ' + W + ' ' + H + '"><polyline fill="none" stroke="#162351" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" points="' + pts.map(function(p){ return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ') + '"/><circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="2.6" fill="#A81D22"/></svg>';
+}
+function drawRadars(){
+  if (!window.Chart) { setTimeout(function(){ if (S.view === 'me' && window.Chart) drawRadars(); }, 600); return; }
+  var m = S.me;
+  [['rd1','Running'],['rd2','Gym']].forEach(function(cfg){
+    var cv = document.getElementById(cfg[0]); if (!cv) return;
+    var ts = m.tests.filter(function(t){ return (TM[t.key] || {}).cat === cfg[1]; });
+    var dir = function(t){ return (TM[t.key] || {}).dir || 1; };
+    var pct = function(t, v){ if (v == null || !t.target) return null; var p = dir(t) < 0 ? t.target / v : v / t.target; return Math.min(150, Math.round(p * 100)); };
+    var hasLatest = ts.some(function(t){ return t.latest != null; });
+    var a = ts.map(function(t){ return pct(t, hasLatest ? t.latest : t.best); });
+    var b = ts.map(function(t){ return pct(t, t.before); });
+    var sets = [
+      {label: hasLatest ? (m.latest || 'Latest') : 'Your bests', data: a, borderColor: '#A81D22', backgroundColor: 'rgba(168,29,34,.14)', borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: '#A81D22', spanGaps: true}
+    ];
+    if (hasLatest && b.some(function(x){ return x != null; })) sets.push({label: m.previous || 'Before', data: b, borderColor: '#9AA3B5', backgroundColor: 'rgba(154,163,181,.06)', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, spanGaps: true});
+    sets.push({label: 'Target', data: ts.map(function(){ return 100; }), borderColor: '#162351', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0});
+    charts.push(new Chart(cv, {type: 'radar', data: {labels: ts.map(function(t){ return (TM[t.key] || {}).short || label(t.key); }), datasets: sets},
+      options: {responsive: true, maintainAspectRatio: false, animation: {duration: 400},
+        scales: {r: {min: 0, max: 150, ticks: {display: false, stepSize: 50}, grid: {color: '#E2E5EE'}, angleLines: {color: '#E2E5EE'}, pointLabels: {color: '#404F6F', font: {size: 11, family: 'Roboto'}}}},
+        plugins: {legend: {position: 'bottom', labels: {boxWidth: 10, boxHeight: 10, font: {size: 11, family: 'Roboto'}, color: '#404F6F'}},
+          tooltip: {callbacks: {label: function(c){ return c.dataset.label + ': ' + (c.raw == null ? 'not tested' : c.raw + '%'); }}}}}}));
+  });
+}
+function saveProfile(){
+  var pos = (document.getElementById('setpos') || {}).value || '';
+  var bw = (document.getElementById('setbw') || {}).value || '';
+  var err = document.getElementById('proferr');
+  if (!pos && !bw) { err.textContent = 'Pick a position or type your weight.'; return; }
+  err.textContent = 'Saving…';
+  call('api_setProfile', S.token, pos, bw).then(function(me){ S.me = me; toast('Saved ✓'); render(); }).catch(function(e){ err.textContent = e.message; });
+}
+
+/* ---------------- privacy ---------------- */
+function privacyText(){
+  var q = S.squad || {};
+  return '<ul>'
+    + '<li>The app keeps your <b>name, position, body weight, testing results and the PBs you log</b> in the club’s coach sheet (Google). It’s used for training and selection only.</li>'
+    + '<li><b>Coaches</b> can see all of it. Your <b>body weight and targets</b> only show on your own page.</li>'
+    + '<li>If you’re on the leaderboards, your <b>name, results and PBs</b> show to anyone with the squad link.</li>'
+    + '<li>You can come off the leaderboards any time from your page, or ask a coach to delete your data.</li></ul>'
+    + (q.dataContact ? '<div class="small">Questions about your data: ' + esc(q.dataContact) + '</div>' : '')
+    + (q.privacyUrl ? '<div class="small" style="margin-top:4px"><a target="_blank" rel="noopener" href="' + esc(q.privacyUrl) + '">Club privacy policy ›</a></div>' : '');
+}
+function needsPrivacy(){ return !!(S.me && !S.me.privacy && S.view !== 'coach'); }
+function openPrivacy(ask){
+  var h = '<div class="overlay"' + (ask ? '' : ' onclick="if(event.target===this)closePb()"') + '><div class="sheet privacy" role="dialog" aria-label="Your data"><div class="grab"></div><h2>' + (ask ? 'BEFORE YOU START' : 'YOUR DATA') + '</h2>'
+    + '<div class="small muted">Paisley RFC’s strength and conditioning app. Here’s what it does with your information.</div>' + privacyText();
+  if (ask) h += '<label class="small" style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;cursor:pointer"><input type="checkbox" id="pvok" onchange="pvTick()" style="width:20px;height:20px;flex:none;margin:0"><span>I’ve read this and understand how my information is used.</span></label>'
+    + '<div class="small" style="margin-top:14px;font-weight:700">Do you want to be on the squad leaderboards?</div>'
+    + '<div class="choice"><button class="btn navy" disabled onclick="answerPrivacy(true, this)">Yes, show me</button><button class="btn line" disabled onclick="answerPrivacy(false, this)">No, keep me off</button></div>'
+    + '<div class="err" id="pverr"></div><div class="tiny muted" style="margin-top:8px">You can change this any time on your page.</div>';
+  else h += '<button class="btn line wide" style="margin-top:14px" onclick="closePb()">Close</button>';
+  document.getElementById('modal').innerHTML = h + '</div></div>';
+}
+function pvTick(){ var ok = document.getElementById('pvok').checked; document.querySelectorAll('.choice .btn').forEach(function(b){ b.disabled = !ok; }); }
+function answerPrivacy(show, btn){
+  document.querySelectorAll('.choice .btn').forEach(function(b){ b.disabled = true; });
+  btn.textContent = 'Saving…';
+  call('api_privacy', S.token, show).then(function(me){
+    S.me = me; keep(); closePb(); render(); refreshData();
+    toast(show ? 'Done. You’re on the leaderboards.' : 'Done. You’re off the leaderboards; your own page works as normal.');
+  }).catch(function(e){ document.getElementById('pverr').textContent = e.message; pvTick(); btn.textContent = show ? 'Yes, show me' : 'No, keep me off'; });
+}
+function setBoards(show, btn){
+  btn.disabled = true;
+  call('api_privacy', S.token, show).then(function(me){ S.me = me; keep(); render(); refreshData(); toast(show ? 'You’re back on the leaderboards.' : 'You’re off the leaderboards.'); })
+    .catch(function(e){ toast(e.message); btn.disabled = false; });
+}
+function privacyBanner(){
+  var el = document.getElementById('banner');
+  if (S.me || S.view === 'coach' || LS.get('prfc_coachmode') || LS.get('prfc_pv_seen') || document.getElementById('modal').innerHTML) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="banner"><div class="grow">This app shows Paisley RFC players’ names and results. <a href="javascript:void 0" onclick="openPrivacy(false)">How we use data</a></div><button class="btn red sm" onclick="LS.set(\'prfc_pv_seen\',\'1\');privacyBanner()">OK</button></div>';
+}
+
+/* ---------------- log a PB ---------------- */
+function openPb(){
+  var q = S.squad, me = S.me;
+  var cats = {};
+  q.pbTests.forEach(function(t){ var c = t.cat === 'Body' ? 'Body' : t.cat; (cats[c] = cats[c] || []).push(t); });
+  var grid = ['Running','Power','Gym','Body'].filter(function(c){ return cats[c]; }).map(function(c){
+    return '<div class="tg"><div class="tgl">' + c + '</div><div class="tgc">' + cats[c].map(function(t){ return '<button type="button" class="chip pbt" data-k="' + esc(t.key) + '" onclick="pickTest(this)">' + esc((TM[t.key] && TM[t.key].short) || t.label) + '</button>'; }).join('') + '</div></div>';
+  }).join('');
+  var h = '<div class="overlay" onclick="if(event.target===this)closePb()"><div class="sheet" role="dialog" aria-label="Log a PB"><div class="grab"></div><h2>LOG A PB</h2><div id="pbbody">';
+  if (!me) h += '<div class="field"><label for="pbname">Your name</label><select class="inp" id="pbname"><option value="">Pick your name</option>' + q.players.map(function(n){ return '<option>' + esc(n) + '</option>'; }).join('') + '</select></div>';
+  else h += '<div class="small muted" style="margin:-6px 0 12px">Logging as <b style="color:var(--ink)">' + esc(me.name) + '</b></div>';
+  h += '<div class="field"><label>Test</label><input type="hidden" id="pbtest" value="">' + grid + '</div>'
+    + '<div class="field"><label for="pbres">Result</label><input class="inp" id="pbres" autocomplete="off" inputmode="decimal" placeholder="Pick a test first"><div class="hint" id="pbhint"></div></div>'
+    + '<div class="field"><label for="pbdate">Date you did it</label><input class="inp" type="date" id="pbdate" value="' + todayIso() + '" max="' + todayIso() + '"></div>'
+    + '<div class="field"><label for="pbnotes">Who saw it? <span class="muted">(helps your coach check it)</span></label><input class="inp" id="pbnotes" placeholder="Name of who saw it, or a video link"></div>'
+    + '<div class="err" id="pberr"></div><button class="btn red wide" id="pbgo" onclick="submitPb()">Save PB</button>'
+    + '<div class="tiny muted" style="text-align:center;margin-top:10px">' + (q.strictPbs ? 'Your coach checks every PB before it goes on the boards.' : 'Sensible PBs count straight away and show as self-logged until a coach checks them. Big jumps wait for your coach first.') + '</div>';
+  h += '</div></div></div>';
+  document.getElementById('modal').innerHTML = h;
+}
+function closePb(){ document.getElementById('modal').innerHTML = ''; }
+function pickTest(el){
+  document.getElementById('pbtest').value = el.getAttribute('data-k');
+  document.querySelectorAll('.pbt').forEach(function(b){ b.classList.toggle('on', b === el); });
+  pbHint();
+  var r = document.getElementById('pbres'); if (r) r.focus();
+}
+function pbHint(){
+  var k = document.getElementById('pbtest').value, t = TM[k] || {}, inp = document.getElementById('pbres'), hint = document.getElementById('pbhint');
+  if (!k) return;
+  if (t.mss) { inp.placeholder = 'e.g. 25:13'; inp.setAttribute('inputmode', 'numeric'); hint.textContent = 'Minutes:seconds. Typing 2513 works too.'; }
+  else { inp.placeholder = t.unit === 's' ? 'e.g. 5.32' : t.unit === 'reps' ? 'e.g. 12' : 'e.g. 120'; inp.setAttribute('inputmode', 'decimal'); hint.textContent = t.unit === 'reps' ? 'Number of reps.' : 'In ' + (t.unit === 's' ? 'seconds' : t.unit) + '.'; }
+  var me = S.me, bt = me && me.tests.filter(function(x){ return x.key === k; })[0];
+  if (bt && bt.best != null) hint.textContent += ' Your best: ' + fmtU(k, bt.best) + '.';
+}
+function submitPb(){
+  var name = S.me ? S.me.name : (document.getElementById('pbname') || {}).value;
+  var f = {name: name, test: document.getElementById('pbtest').value, result: document.getElementById('pbres').value, date: document.getElementById('pbdate').value, notes: document.getElementById('pbnotes').value};
+  var err = document.getElementById('pberr'), go = document.getElementById('pbgo');
+  if (!f.name) { err.textContent = 'Pick your name.'; return; }
+  if (!f.test) { err.textContent = 'Pick a test.'; return; }
+  if (!String(f.result).trim()) { err.textContent = 'Type your result.'; return; }
+  err.textContent = ''; go.disabled = true; go.textContent = 'Saving…';
+  call('api_logPb', S.me ? S.token : '', f).then(function(r){
+    refreshData();
+    var good = r.auto && r.pb;
+    var share = '🏉 New PB! ' + r.name + ' · ' + label(r.test) + ': ' + fmtU(r.test, r.value) + (r.was != null ? ' (was ' + fmtU(r.test, r.was) + ')' : '') + '. Paisley RFC S&C ' + appUrl();
+    var h = '<div class="done"><div class="tick' + (r.auto ? '' : ' wait') + '">' + (r.auto ? '✓' : '…') + '</div>'
+      + '<h2 style="margin-bottom:6px">' + (good ? 'NEW PB!' : r.auto ? 'LOGGED' : 'SENT TO COACH') + '</h2>'
+      + '<div class="muted">' + esc(label(r.test)) + ' · <b style="color:var(--ink)">' + esc(fmtU(r.test, r.value)) + '</b></div>'
+      + '<div class="small" style="margin:8px 0 16px">' + esc(r.msg) + '</div>'
+      + (good ? '<a class="btn green wide" target="_blank" rel="noopener" href="' + waShare(share) + '">' + ic('share') + 'Share in the squad chat</a><div style="height:8px"></div>' : '')
+      + '<button class="btn line wide" onclick="closePb();render()">Done</button></div>';
+    document.getElementById('pbbody').innerHTML = h;
+  }).catch(function(e){ err.textContent = e.message; go.disabled = false; go.textContent = 'Save PB'; });
+}
+
+/* ---------------- coach ---------------- */
+function vCoach(){
+  if (!S.coach) {
+    if (S.pin && !S.coachErr) { loadCoach(); return '<section class="card"><div class="sk" style="width:40%"></div><div class="sk"></div><div class="sk" style="width:80%"></div></section>'; }
+    return '<section class="card" style="max-width:420px;margin:20px auto"><div class="h-sec">Coach mode</div><div class="small muted" style="margin:-6px 0 14px">Testing day entry, PB checks, the weekly roundup and player links.</div>'
+      + '<div class="field"><label for="pin">Coach PIN</label><input class="inp" id="pin" type="password" inputmode="numeric" autocomplete="off" onkeydown="if(event.key===\'Enter\')pinGo()"></div>'
+      + '<div class="err" id="pinerr">' + esc(S.coachErr) + '</div><button class="btn navy wide" onclick="pinGo()">Open coach mode</button></section>';
+  }
+  var C = S.coach, h = '';
+  var tabsC = [['testing','Testing day'],['inbox','PB inbox' + (C.waiting.length ? ' (' + C.waiting.length + ')' : '')],['squad','Squad list'],['roundup','Weekly roundup'],['links','Player links']];
+  h += '<div class="chips">' + tabsC.map(function(t){ return '<button class="chip ' + (S.ctab === t[0] ? 'on' : '') + '" onclick="S.ctab=\'' + t[0] + '\';render()">' + t[1] + '</button>'; }).join('')
+    + '<a class="chip" target="_blank" rel="noopener" href="' + esc(C.sheetUrl) + '">Coach sheet ↗</a></div>';
+  var selfLogged = C.counted.filter(function(x){ return x.by === 'Auto'; }).length;
+  h += '<div class="csum">'
+    + '<div class="c"><b>' + (C.nextTesting ? esc(dShort(C.nextTesting)) : 'Not set') + '</b><span>Next testing day</span></div>'
+    + '<div class="c" style="cursor:pointer" onclick="S.ctab=\'inbox\';render()"><b>' + C.waiting.length + (selfLogged ? ' <small style="font-size:12px;color:var(--muted)">+ ' + selfLogged + ' to check</small>' : '') + '</b><span>PBs waiting for you</span></div>'
+    + '<div class="c" style="cursor:pointer" onclick="S.ctab=\'squad\';render()"><b>' + (C.total - C.noPosition) + ' / ' + C.total + '</b><span>Players with a position</span></div></div>';
+  if (S.ctab === 'inbox') h += vInbox(); else if (S.ctab === 'squad') h += vSquadList(); else if (S.ctab === 'roundup') h += vRoundup(); else if (S.ctab === 'links') h += vLinks(); else h += vTesting();
+  return h;
+}
+function pinGo(){
+  var p = document.getElementById('pin').value.trim();
+  if (!p) return;
+  S.pin = p; S.coachErr = ''; render();
+}
+function loadCoach(){
+  if (loadCoach._busy) return; loadCoach._busy = true;
+  call('api_coach', S.pin).then(function(c){ loadCoach._busy = false; S.coach = c; LS.set('prfc_pin', S.pin); LS.set('prfc_coachmode', '1'); if (!S.t.round) S.t.round = c.suggest || c.latest || c.rounds[0] || ''; restoreDraft(); render(); })
+    .catch(function(e){ loadCoach._busy = false; S.coachErr = e.message; S.pin = ''; LS.del('prfc_pin'); render(); });
+}
+var STN_ALL = 'All tests';
+function stationTests(){
+  var C = S.coach;
+  if (S.t.station === STN_ALL) return C.stations.reduce(function(a, s){ return a.concat(s.tests); }, []);
+  var s = C.stations.filter(function(x){ return x.name === S.t.station; })[0];
+  return s ? s.tests : [];
+}
+function cur(name, h){
+  var d = S.t.dirty[name];
+  if (d && h in d) return d[h];
+  var r = (S.coach.testing[S.t.round] || {})[name];
+  return r && r.vals[h] != null ? r.vals[h] : '';
+}
+function vTesting(){
+  var C = S.coach, T = S.t, h = '';
+  var tests = stationTests();
+  h += '<section class="card"><div class="ctrls"><div class="field"><label for="tdate">Date</label><input class="inp" type="date" id="tdate" value="' + esc(T.date) + '" onchange="S.t.date=this.value"></div>'
+    + '<div class="field"><label for="tround">Round</label><select class="inp" id="tround" onchange="setRound(this)">' + C.rounds.map(function(r){ return '<option' + (r === T.round ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select></div></div>'
+    + '<div class="chips" style="padding-bottom:4px">' + C.stations.map(function(s){ return s.name; }).concat([STN_ALL]).map(function(n){ return '<button class="chip ' + (T.station === n ? 'on' : '') + '" onclick="S.t.station=\'' + n + '\';render()">' + n + '</button>'; }).join('') + '</div>';
+  var st = C.stations.filter(function(x){ return x.name === T.station; })[0];
+  if (st) h += '<div class="small muted">' + esc(st.help) + '</div>';
+  h += '<input class="inp" style="margin-top:12px" placeholder="Find a player" value="' + esc(T.q) + '" oninput="S.t.q=this.value;filterRows()">'
+    + '<div class="ctas" style="margin:12px 0 0"><button class="btn line sm" onclick="printSheet(false)">🖨 Paper sheet: ' + esc(T.station === STN_ALL ? 'all tests' : T.station.toLowerCase()) + '</button>' + (T.station === STN_ALL ? '' : '<button class="btn lite sm" onclick="printSheet(true)">All stations</button>') + '</div>'
+    + '<div class="tiny muted" style="margin-top:6px">Print it for the pitch, fill it in by hand, then type it in here. Players are in the same order on paper and on screen.</div></section>';
+  var players = C.players.slice().sort(function(a, b){ var ua = a.status === 'Unavailable' ? 1 : 0, ub = b.status === 'Unavailable' ? 1 : 0; return ua - ub || (a.name < b.name ? -1 : 1); });
+  var full = 0;
+  var rows = players.map(function(p){
+    var vals = tests.map(function(k){ return cur(p.name, k); });
+    var isFull = vals.every(function(v){ return String(v).trim() !== ''; });
+    if (isFull) full++;
+    var dirty = !!S.t.dirty[p.name] && Object.keys(S.t.dirty[p.name]).length;
+    return '<div class="prow' + (dirty ? ' dirty' : '') + (isFull ? ' full' : '') + (p.status === 'Unavailable' ? ' unav' : '') + '" data-name="' + esc(p.name.toLowerCase()) + '"><div class="pn">' + esc(p.name) + '<small>' + esc(p.group || '') + (p.status !== 'Available' ? ' · ' + esc(p.status) : '') + '</small></div><div class="pins">'
+      + tests.map(function(k){
+        var t = TM[k] || {}, v = cur(p.name, k), chg = S.t.dirty[p.name] && k in S.t.dirty[p.name];
+        return '<label class="pf"><span>' + esc(t.short || k) + (t.mss ? '' : t.unit ? ' (' + esc(t.unit) + ')' : '') + '</span><input data-p="' + esc(p.name) + '" data-h="' + esc(k) + '" value="' + esc(v) + '" class="' + (chg ? 'chg' : '') + (warnFor(k, v) ? ' warn' : '') + '" inputmode="' + (t.mss ? 'numeric' : 'decimal') + '" autocomplete="off" placeholder="' + (t.mss ? 'm:ss' : '') + '"></label>';
+      }).join('') + '</div></div>';
+  }).join('');
+  h += '<div class="small muted" style="margin:0 2px 8px"><b style="color:var(--ink)">' + full + ' of ' + players.length + '</b> players done for ' + esc(T.station === STN_ALL ? 'every test' : T.station.toLowerCase()) + ' in ' + esc(T.round || 'this round') + '.</div>';
+  h += '<div id="prows">' + rows + '</div>';
+  h += '<div style="height:70px"></div>';
+  return h;
+}
+/* A paper sheet for testing day: same players, same order and same tests as the entry screen. */
+function printSheet(all){
+  var C = S.coach, T = S.t;
+  var stations = all || T.station === STN_ALL ? C.stations : C.stations.filter(function(x){ return x.name === T.station; });
+  var players = C.players.filter(function(p){ return p.status !== 'Unavailable'; }).sort(function(a, b){ return a.name < b.name ? -1 : 1; });
+  var html = stations.map(function(st){
+    var cols = st.tests.map(function(k){ var t = TM[k] || {}; return (t.short || k) + (t.mss ? ' (m:ss)' : t.unit ? ' (' + t.unit + ')' : ''); });
+    return '<section class="pp"><h1>PAISLEY RFC · TESTING DAY · ' + esc(st.name.toUpperCase()) + '</h1>'
+      + '<div class="meta2">Round: <b>' + esc(T.round || '') + '</b> &nbsp; Date: ____________ &nbsp; Coach: ______________ &nbsp; ' + esc(st.help) + '</div>'
+      + '<table><thead><tr><th style="width:26%">Player</th>' + cols.map(function(c){ return '<th>' + esc(c) + '</th>'; }).join('') + '<th style="width:18%">Notes</th></tr></thead><tbody>'
+      + players.map(function(p){ return '<tr><td>' + esc(p.name) + '</td>' + cols.map(function(){ return '<td></td>'; }).join('') + '<td></td></tr>'; }).join('')
+      + [1,2,3,4,5,6].map(function(){ return '<tr><td></td>' + cols.map(function(){ return '<td></td>'; }).join('') + '<td></td></tr>'; }).join('')
+      + '</tbody></table></section>';
+  }).join('');
+  document.getElementById('printarea').innerHTML = html;
+  document.body.classList.add('printing');
+  var done = function(){ document.body.classList.remove('printing'); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  setTimeout(function(){ try { window.print(); } catch(e){ toast('Printing isn’t available here. Open the app in your browser to print.'); done(); } }, 50);
+}
+function warnFor(k, v){
+  v = String(v || '').trim(); if (!v) return false;
+  var t = TM[k] || {}, r = S.coach && S.coach.ranges[k];
+  var x;
+  if (t.mss) { if (!/^\d{1,2}:[0-5]\d$/.test(v)) return true; var p = v.split(':'); x = Number(p[0]) * 60 + Number(p[1]); }
+  else { if (!/^\d+(\.\d+)?$/.test(v)) return true; x = Number(v); }
+  return r ? (x < r.lo || x > r.hi) : false;
+}
+function filterRows(){
+  var q = S.t.q.trim().toLowerCase();
+  document.querySelectorAll('#prows .prow').forEach(function(el){ el.style.display = !q || el.getAttribute('data-name').indexOf(q) >= 0 ? '' : 'none'; });
+}
+function setRound(sel){
+  if (dirtyCount()) { sel.value = S.t.round; toast('Save first, then change round.'); return; }
+  S.t.round = sel.value; render();
+}
+function dirtyCount(){ var n = 0; Object.keys(S.t.dirty).forEach(function(p){ if (Object.keys(S.t.dirty[p]).length) n++; }); return n; }
+function updateSavebar(){
+  var bar = document.getElementById('savebar');
+  var inCoach = S.view === 'coach' && S.coach;
+  var n = inCoach && S.ctab === 'testing' ? dirtyCount() : 0;
+  var m = inCoach && S.ctab === 'squad' ? Object.keys(S.sq || {}).length : 0;
+  if (!n && !m) { if (bar) bar.remove(); return; }
+  if (!bar) { bar = document.createElement('div'); bar.id = 'savebar'; bar.className = 'savebar'; document.body.appendChild(bar); }
+  if (m) { bar.innerHTML = '<div class="grow"><b>' + m + '</b> player' + (m === 1 ? '' : 's') + ' changed</div><button class="btn line sm" onclick="S.sq={};render()">Undo</button><button class="btn red" id="savebtn" onclick="saveSquad()">Save</button>'; return; }
+  bar.innerHTML = '<div class="grow"><b>' + n + '</b> player' + (n === 1 ? '' : 's') + ' not saved yet<div class="tiny" style="opacity:.75;font-weight:400">Kept on this phone until you save</div></div><button class="btn line sm" onclick="discard()">Undo</button><button class="btn red" id="savebtn" onclick="saveTesting()">Save</button>';
+}
+function discard(){ S.t.dirty = {}; LS.del('prfc_tdraft'); render(); }
+/* Unsaved testing entries live on the phone too, so a dropped signal, a reload or a switch to the stopwatch app loses nothing. */
+function saveDraft(){
+  if (!dirtyCount()) { LS.del('prfc_tdraft'); return; }
+  LS.set('prfc_tdraft', JSON.stringify({round: S.t.round, date: S.t.date, dirty: S.t.dirty, at: Date.now()}));
+}
+function restoreDraft(){
+  var d = saved('prfc_tdraft');
+  if (!d || !d.dirty || dirtyCount()) return;
+  S.t.dirty = d.dirty;
+  if (d.round) S.t.round = d.round;
+  if (d.date) S.t.date = d.date;
+  var n = dirtyCount();
+  if (n) { S.ctab = 'testing'; setTimeout(function(){ toast('Brought back ' + n + ' player' + (n === 1 ? '' : 's') + ' you hadn’t saved yet.'); }, 300); }
+}
+window.addEventListener('pagehide', saveDraft);
+document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'hidden') saveDraft(); });
+document.addEventListener('input', function(e){
+  var el = e.target; if (!el.getAttribute || !el.getAttribute('data-h')) return;
+  var p = el.getAttribute('data-p'), h = el.getAttribute('data-h');
+  (S.t.dirty[p] = S.t.dirty[p] || {})[h] = el.value;
+  el.classList.add('chg');
+  var row = el.closest('.prow'); if (row) row.classList.add('dirty');
+  updateSavebar();
+  saveDraft();
+});
+document.addEventListener('focusout', function(e){
+  var el = e.target; if (!el.getAttribute || !el.getAttribute('data-h')) return;
+  var k = el.getAttribute('data-h'), t = TM[k] || {}, v = el.value.trim().replace(',', '.');
+  if (t.mss && /^\d{3,4}$/.test(v)) { v = v.slice(0, -2) + ':' + v.slice(-2); }
+  if (v !== el.value) { el.value = v; var p = el.getAttribute('data-p'); (S.t.dirty[p] = S.t.dirty[p] || {})[k] = v; saveDraft(); }
+  el.classList.toggle('warn', warnFor(k, v));
+});
+document.addEventListener('keydown', function(e){
+  var el = e.target; if (e.key !== 'Enter' || !el.getAttribute || !el.getAttribute('data-h')) return;
+  e.preventDefault();
+  var all = Array.prototype.slice.call(document.querySelectorAll('#prows input')).filter(function(x){ return x.offsetParent !== null; });
+  var i = all.indexOf(el); if (i >= 0 && all[i+1]) all[i+1].focus();
+});
+function saveTesting(){
+  var btn = document.getElementById('savebtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  var rows = Object.keys(S.t.dirty).filter(function(p){ return Object.keys(S.t.dirty[p]).length; }).map(function(p){ return {player: p, values: S.t.dirty[p]}; });
+  saveDraft();
+  call('api_saveTesting', S.pin, {date: S.t.date, round: S.t.round, rows: rows}).then(function(c){
+    S.coach = c; S.t.dirty = {}; LS.del('prfc_tdraft');
+    toast('Saved ' + c.saved.players + ' player' + (c.saved.players === 1 ? '' : 's') + ' ✓');
+    render();
+    call('api_squad').then(function(q){ S.squad = q; indexTests(); keep(); }).catch(function(){});
+  }).catch(function(e){
+    toast(e.message === NOSIG ? 'No signal. Your numbers are kept on this phone. Tap Save again when you’re back online.' : e.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+  });
+}
+function vInbox(){
+  var C = S.coach, h = '<section class="card"><div class="h-sec">Waiting for you</div>';
+  if (!C.waiting.length) h += '<div class="empty"><div class="em">✅</div>Nothing to check. Sensible PBs count by themselves.</div>';
+  else h += C.waiting.map(function(x){
+    var ok = /^(OK|Looks fine)/.test(x.check);
+    return '<div class="inb"><div class="top2"><div class="av">' + esc(initials(x.name)) + '</div><div class="grow"><div class="name">' + esc(x.name) + '</div><div class="small muted">' + esc(label(x.test)) + ' · <b style="color:var(--ink)">' + esc(x.result) + '</b> · ' + esc(dShort(x.date)) + '</div></div></div>'
+      + (x.notes ? '<div class="small" style="margin-top:6px">“' + esc(x.notes) + '”</div>' : '')
+      + '<div class="chk ' + (ok ? 'ok' : 'bad') + '">' + esc(x.check || 'Check it') + '</div>'
+      + '<div class="acts"><button class="btn line sm" onclick="inboxAct(' + x.row + ',this,\'reject\')" data-n="' + esc(x.name) + '">Bin it</button><button class="btn green sm" onclick="inboxAct(' + x.row + ',this,\'approve\')" data-n="' + esc(x.name) + '">Count it</button></div></div>';
+  }).join('');
+  h += '</section><section class="card"><div class="h-sec">Counted in the last 2 weeks</div><div class="small muted" style="margin:-6px 0 10px">' + (C.strictPbs ? 'Every PB waits for you first (Settings tab).' : 'Sensible PBs count straight away and show as <b>self-logged</b> until you tick them here.') + '</div>';
+  if (!C.counted.length) h += '<div class="empty small">None yet.</div>';
+  else h += '<div class="list">' + C.counted.map(function(x){
+    var auto = x.by === 'Auto';
+    return '<div class="item"><div class="grow"><div class="name">' + esc(x.name) + '</div><div class="small muted"><span class="tag ' + (auto ? 'sl">Self-logged' : 'ck">Coach ✓') + '</span> ' + esc(label(x.test)) + ' · ' + esc(x.result) + ' · ' + esc(dShort(x.date)) + (x.notes ? ' · “' + esc(x.notes) + '”' : '') + '</div></div>'
+      + (auto ? '<button class="btn green sm" onclick="inboxAct(' + x.row + ',this,\'verify\')" data-n="' + esc(x.name) + '">Checked ✓</button>' : '')
+      + '<button class="btn line sm" onclick="inboxAct(' + x.row + ',this,\'undo\')" data-n="' + esc(x.name) + '">Undo</button></div>';
+  }).join('') + '</div>';
+  return h + '</section>';
+}
+function inboxAct(row, btn, act){
+  btn.disabled = true;
+  call('api_inbox', S.pin, row, btn.getAttribute('data-n'), act).then(function(c){
+    S.coach = c; toast(act === 'approve' ? 'Counted ✓' : act === 'verify' ? 'Marked as checked ✓' : act === 'reject' ? 'Binned' : 'Moved back to waiting'); render();
+    call('api_squad').then(function(q){ S.squad = q; indexTests(); }).catch(function(){});
+  }).catch(function(e){ toast(e.message); btn.disabled = false; });
+}
+function vRoundup(){
+  var C = S.coach;
+  return '<section class="card"><div class="h-sec">Weekly roundup</div><div class="small muted" style="margin:-6px 0 12px">Built from this week’s PBs and records. One tap posts it to the squad chat.</div>'
+    + '<div class="pre" id="rutext">' + esc(C.roundup) + '</div><div class="ctas" style="margin:12px 0 0"><a class="btn green" target="_blank" rel="noopener" href="' + waShare(C.roundup) + '">' + ic('share') + 'Post to WhatsApp</a><button class="btn line" onclick="copyText(S.coach.roundup)">' + ic('copy') + 'Copy</button></div></section>';
+}
+function vLinks(){
+  var C = S.coach;
+  var squadMsg = 'Paisley RFC S&C app: leaderboards, club records, and log your PBs. ' + C.appUrl;
+  var h = '<section class="card"><div class="h-sec">Squad link</div><div class="small muted" style="margin:-6px 0 12px">Post once in the squad chat. Anyone with it sees leaderboards, records and can log a PB.</div>'
+    + '<div class="ctas" style="margin:0"><a class="btn green" target="_blank" rel="noopener" href="' + waShare(squadMsg) + '">' + ic('share') + 'Post to WhatsApp</a><button class="btn line" onclick="copyText(\'' + esc(C.appUrl) + '\')">' + ic('copy') + 'Copy link</button></div></section>';
+  h += '<section class="card"><div class="h-sec">Personal links</div><div class="small muted" style="margin:-6px 0 12px">Each player’s private page. Send once by WhatsApp: tap, pick the player, send. Link passed around? Tap ↻ for a new one; the old one stops working.</div>'
+    + '<input class="inp" placeholder="Find a player" oninput="var q=this.value.toLowerCase();document.querySelectorAll(\'.lk\').forEach(function(e){e.style.display=e.getAttribute(\'data-n\').indexOf(q)>=0?\'\':\'none\'})" style="margin-bottom:8px">';
+  h += '<div class="list">' + C.players.map(function(p){
+    var msg = 'Hi ' + p.name.split(' ')[0] + ', here’s your Paisley RFC S&C page: scores, targets and radars. Save it to your home screen. ' + p.link;
+    var fresh = C.reset === p.name;
+    return '<div class="item lk" data-n="' + esc(p.name.toLowerCase()) + '"' + (fresh ? ' style="background:#FFF6E0;border-radius:10px"' : '') + '><div class="av">' + esc(initials(p.name)) + '</div><div class="grow"><div class="name">' + esc(p.name) + '</div><div class="tiny muted">' + (fresh ? '<b style="color:var(--red)">New link made. Send it now.</b>' : esc(p.group || 'No position yet')) + '</div></div>'
+      + '<button class="btn line sm" onclick="copyText(\'' + esc(p.link) + '\')" aria-label="Copy link">' + ic('copy') + '</button><a class="share" target="_blank" rel="noopener" href="' + waShare(msg) + '" aria-label="Send on WhatsApp">' + ic('share') + '</a>'
+      + '<button class="btn lite sm" data-n="' + esc(p.name) + '" onclick="resetLink(this)" aria-label="Make a new link">' + ic('reset') + '</button></div>';
+  }).join('') + '</div></section>';
+  if (C.coachUrl) {
+    var coachMsg = 'Paisley RFC S&C coach app: testing day, PB checks and the weekly roundup. Ask me for the coach PIN. ' + C.coachUrl;
+    h += '<section class="card"><div class="h-sec">Coach link</div><div class="small muted" style="margin:-6px 0 12px">For other coaches. It opens straight into coach mode; they still need the PIN, so send that separately.</div>'
+      + '<div class="ctas" style="margin:0"><a class="btn green" target="_blank" rel="noopener" href="' + waShare(coachMsg) + '">' + ic('share') + 'Send on WhatsApp</a><button class="btn line" onclick="copyText(\'' + esc(C.coachUrl) + '\')">' + ic('copy') + 'Copy link</button></div></section>';
+  }
+  return h;
+}
+/* Squad list: main position (sets targets) and availability, for everyone at once. */
+var STATUSES = ['Available', 'Modified', 'Unavailable'];
+function vSquadList(){
+  var C = S.coach, d = S.sq = S.sq || {};
+  var h = '<section class="card"><div class="h-sec">Squad list</div><div class="small muted" style="margin:-6px 0 12px">Main position sets each player’s targets. Players can also pick their own the first time they open their page. Modified = training with a niggle.</div>'
+    + '<input class="inp" placeholder="Find a player" oninput="var q=this.value.toLowerCase();document.querySelectorAll(\'.sqr\').forEach(function(e){e.style.display=e.getAttribute(\'data-n\').indexOf(q)>=0?\'\':\'none\'})" style="margin-bottom:4px">';
+  h += C.players.map(function(p){
+    var x = d[p.name] || {}, pos = 'pos' in x ? x.pos : p.pos, st = 'status' in x ? x.status : p.status;
+    return '<div class="sqr' + (d[p.name] ? ' chg' : '') + '" data-n="' + esc(p.name.toLowerCase()) + '"><div class="name">' + esc(p.name) + '</div>'
+      + '<select class="inp" data-p="' + esc(p.name) + '" data-k="pos" onchange="sqSet(this)"><option value="">No position yet</option>' + C.positions.map(function(o){ return '<option' + (o === pos ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>'
+      + '<select class="inp" data-p="' + esc(p.name) + '" data-k="status" onchange="sqSet(this)">' + STATUSES.map(function(o){ return '<option' + (o === st ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></div>';
+  }).join('');
+  return h + '</section><div style="height:70px"></div>';
+}
+function sqSet(el){
+  var p = el.getAttribute('data-p'), k = el.getAttribute('data-k');
+  (S.sq[p] = S.sq[p] || {})[k] = el.value;
+  var row = el.closest('.sqr'); if (row) row.classList.add('chg');
+  updateSavebar();
+}
+function saveSquad(){
+  var btn = document.getElementById('savebtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  var changes = Object.keys(S.sq).map(function(n){ var x = S.sq[n]; return {name: n, pos: x.pos, status: x.status}; });
+  call('api_setPlayers', S.pin, changes).then(function(c){ S.coach = c; S.sq = {}; toast('Saved ' + changes.length + ' player' + (changes.length === 1 ? '' : 's') + ' ✓'); render(); refreshData(); })
+    .catch(function(e){ toast(e.message); if (btn) { btn.disabled = false; btn.textContent = 'Save'; } });
+}
+function resetLink(btn){
+  var name = btn.getAttribute('data-n');
+  if (!btn.classList.contains('sure')) {
+    btn.classList.add('sure'); btn.textContent = 'New link?';
+    setTimeout(function(){ if (btn.isConnected && !btn.disabled) { btn.classList.remove('sure'); btn.innerHTML = ic('reset'); } }, 3500);
+    return;
+  }
+  btn.disabled = true; btn.textContent = '…';
+  call('api_resetLink', S.pin, name).then(function(c){ S.coach = c; render(); toast('New link made for ' + name + '. The old one no longer works.'); })
+    .catch(function(e){ toast(e.message); btn.disabled = false; btn.classList.remove('sure'); btn.innerHTML = ic('reset'); });
+}
+function copyText(t){
+  var done = function(){ toast('Copied ✓'); };
+  try { if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(t).then(done, function(){ fallback(); }); return; } } catch(e){}
+  fallback();
+  function fallback(){ var a = document.createElement('textarea'); a.value = t; a.style.position = 'fixed'; a.style.opacity = '0'; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); done(); } catch(e){ toast('Press and hold to copy'); } a.remove(); }
+}
+
+function refreshData(){
+  call('api_refresh', S.me ? S.token : '').then(function(d){ if (d.squad) { S.squad = d.squad; indexTests(); } if (d.me) S.me = d.me; keep(); if (!document.getElementById('pbbody') && !typing()) render(); }).catch(function(){});
+}
+
+/* ---------------- start ---------------- */
+function setSub(){ if (S.squad) document.getElementById('sub').textContent = 'S&C hub · ' + (S.squad.season || ''); }
+/* Keep the player's link in the address bar, so "Add to Home Screen" makes an icon that opens their own page. */
+function tokenInUrl(t){
+  if (!B.web || B.coach || !window.history || !history.replaceState) return;
+  try { var u = new URL(location.href); if (t) u.searchParams.set('p', t); else u.searchParams.delete('p'); history.replaceState(null, '', u.toString()); } catch(e){}
+}
+function boot(){
+  call('api_boot', S.token).then(function(d){
+    S.squad = d.squad; indexTests(); setSub();
+    if (d.me) { S.me = d.me; LS.set('prfc_token', S.token); tokenInUrl(S.token); }
+    if (d.badToken) { LS.del('prfc_token'); LS.del('prfc_me'); S.token = ''; S.me = null; S.linkGone = true; tokenInUrl(''); if (S.view !== 'me' && S.view !== 'coach') toast('That personal link doesn’t work any more.'); }
+    if (d.league && (!S.league || !S.league.fetched || String(d.league.fetched) >= String(S.league.fetched))) S.league = d.league;
+    keep();
+    if (typing() || document.getElementById('pbbody')) renderNav(); else render();
+    loadLeague();
+  }).catch(function(e){
+    if (!S.squad) { B.error = e.message; render(); }
+    else toast(e.message === NOSIG ? 'No signal. Showing the last saved numbers.' : e.message);
+  });
+}
+document.getElementById('crest').src = B.crest ? 'data:image/png;base64,' + B.crest : B.appUrl + 'icons/crest.png';
+setSub();
+render();
+if (B.web) {
+  boot();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register(B.appUrl + 'sw.js').catch(function(){});
+} else {
+  loadLeague();
+  if (!S.me && S.token) {
+    call('api_me', S.token).then(function(m){ S.me = m; if (S.view === 'me' || S.view === 'boards') render(); else renderNav(); })
+      .catch(function(){ LS.del('prfc_token'); S.token = ''; S.linkGone = true; if (S.view === 'me') render(); });
+  }
+  if (B.badToken && S.view === 'home') toast('That personal link doesn’t work any more.');
+}
+</script>
+</body>
+</html>
