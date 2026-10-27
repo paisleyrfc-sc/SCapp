@@ -832,8 +832,14 @@ function saveProfile(){
   var pos = main ? [main].concat(also) : '';
   if (!pos && !bw) { err.textContent = 'Pick a position or type your weight.'; return; }
   if (bw && S.me && !S.me.needsBw && String(S.me.bw) === bw) bw = '';
-  err.textContent = 'Saving…';
-  call('api_setProfile', S.token, pos, bw).then(function(me){ S.me = me; S.editMe = false; S.pf = null; keep(); toast('Saved ✓'); render(); }).catch(function(e){ err.textContent = e.message; });
+  var kg = Number(String(bw).replace(',', '.'));
+  if (bw && !(kg >= 50 && kg <= 180)) { err.textContent = 'Body weight should be between 50 and 180 kg.'; return; }
+  // show it straight away; the sheet catches up in the background
+  var before = S.me;
+  S.me = Object.assign({}, S.me, {pos: pos || S.me.pos, bw: bw ? kg : S.me.bw, needsPosition: S.me.needsPosition && !pos, needsBw: S.me.needsBw && !bw});
+  S.editMe = false; S.pf = null; render(); toast('Saving…');
+  call('api_setProfile', S.token, pos, bw).then(function(me){ S.me = me; keep(); toast('Saved ✓'); render(); })
+    .catch(function(e){ S.me = before; S.editMe = true; render(); toast(e.message); });
 }
 
 /* ---------------- privacy ---------------- */
