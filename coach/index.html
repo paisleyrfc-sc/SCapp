@@ -470,8 +470,9 @@ function vHome(){
   }
   h += '<div class="cols"><div>';
   h += whatsOn() + guides();
-  h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
-  h += '<section class="card"><div class="h-sec">Most improved' + (q.latest && q.previous ? '<span class="more" style="cursor:default;color:var(--muted)">' + esc(q.previous) + ' → ' + esc(q.latest.round) + '</span>' : '') + '</div>' + improvedList() + '</section>';
+  // these two only show once there's something in them
+  if (q.feed.length) h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
+  if ((q.improved || []).length) h += '<section class="card"><div class="h-sec">Most improved' + (q.latest && q.previous ? '<span class="more" style="cursor:default;color:var(--muted)">' + esc(q.previous) + ' → ' + esc(q.latest.round) + '</span>' : '') + '</div>' + improvedList() + '</section>';
   h += '</div><div>';
   h += firstsCard();
   h += '<section class="card"><div class="h-sec">Club records <button class="more" onclick="go(\'boards\')">Leaderboards</button></div>' + recordsGrid() + '</section>';
