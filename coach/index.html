@@ -1011,6 +1011,15 @@ function vCoach(){
   if (S.ctab === 'inbox') h += vInbox(); else if (S.ctab === 'squad') h += vSquadList(); else if (S.ctab === 'roundup') h += vRoundup(); else if (S.ctab === 'links') h += vLinks(); else h += vTesting();
   return h;
 }
+function changePin(){
+  var a = (document.getElementById('np1') || {}).value || '', b = (document.getElementById('np2') || {}).value || '', err = document.getElementById('pinerr2'), btn = document.getElementById('pinbtn');
+  a = a.trim(); b = b.trim();
+  if (!/^[1-9][0-9]{3,7}$/.test(a)) { err.textContent = 'Use 4 to 8 numbers, not starting with 0.'; return; }
+  if (a !== b) { err.textContent = 'The two PINs don’t match.'; return; }
+  err.textContent = ''; btn.disabled = true; btn.textContent = 'Changing…';
+  call('api_setPin', S.pin, a).then(function(){ S.pin = a; LS.set('prfc_pin', a); toast('Coach PIN changed ✓ Send the new one to your coaches.'); render(); })
+    .catch(function(e){ btn.disabled = false; btn.textContent = 'Change PIN'; err.textContent = e.message; });
+}
 function pinGo(){
   var p = document.getElementById('pin').value.trim();
   if (!p) return;
@@ -1266,6 +1275,10 @@ function vLinks(){
     h += '<section class="card"><div class="h-sec">Coach link</div><div class="small muted" style="margin:-6px 0 12px">For other coaches. It opens straight into coach mode; they still need the PIN, so send that separately.</div>'
       + '<div class="ctas" style="margin:0"><a class="btn green" target="_blank" rel="noopener" href="' + waShare(coachMsg) + '">' + ic('share') + 'Send on WhatsApp</a><button class="btn line" onclick="copyText(\'' + esc(C.coachUrl) + '\')">' + ic('copy') + 'Copy link</button></div></section>';
   }
+  h += '<section class="card"><div class="h-sec">Coach PIN</div><div class="small muted" style="margin:-6px 0 10px">Change it here. Every coach then needs the new one, so send it to them privately (not in the squad chat).</div>'
+    + '<div class="ctrls"><div class="field"><label for="np1">New PIN</label><input class="inp" id="np1" type="password" inputmode="numeric" autocomplete="new-password" placeholder="4 to 8 numbers"></div>'
+    + '<div class="field"><label for="np2">Type it again</label><input class="inp" id="np2" type="password" inputmode="numeric" autocomplete="new-password"></div></div>'
+    + '<div class="err" id="pinerr2"></div><button class="btn navy wide" id="pinbtn" onclick="changePin()">Change PIN</button></section>';
   return h;
 }
 /* Squad list: main position (sets targets), the others they can cover, and availability, for everyone at once. */
