@@ -413,8 +413,9 @@ function waShare(text){ return 'https://wa.me/?text=' + encodeURIComponent(text)
 
 /* ---------------- navigation ---------------- */
 function tabs(){
-  var t = [['home','Hub','home'],['boards','Leaders','trophy'],['league','League','table'],['fun','Fun','pint'],['me','My page','user']];
+  var t = [['home','Hub','home'],['boards','Leaders','trophy'],['league','League','table'],['me','My page','user']];
   if (B.coach || S.pin || LS.get('prfc_coachmode')) t.push(['coach','Coach','clip']);
+  t.push(['fun','','pint','Just for fun']); // the sneaky last tab
   return t;
 }
 function go(v){ S.view = v; render(); window.scrollTo(0,0); }
@@ -422,7 +423,7 @@ function renderNav(){
   var waiting = S.coach ? S.coach.waiting.length : 0;
   var h = tabs().map(function(t){
     var b = (t[0] === 'coach' && waiting) ? '<span class="badge">' + waiting + '</span>' : '';
-    return '<button class="' + (S.view === t[0] ? 'on' : '') + '" onclick="go(\'' + t[0] + '\')">' + ic(t[2]) + '<span>' + t[1] + b + '</span></button>';
+    return '<button class="' + (S.view === t[0] ? 'on' : '') + '" onclick="go(\'' + t[0] + '\')" aria-label="' + (t[3] || t[1]) + '" title="' + (t[3] || t[1]) + '">' + ic(t[2]) + '<span>' + (t[1] || '&nbsp;') + b + '</span></button>';
   }).join('');
   document.getElementById('bnav').innerHTML = h;
   document.getElementById('dnav').innerHTML = h;
@@ -448,7 +449,7 @@ function vHome(){
   var nx = q.next, ls = q.last, lt = q.latest;
   h += '<section class="card hero">';
   if (nx) h += '<div class="kick">Next game</div><div class="big">' + (nx.ha === 'Away' ? '@ ' : 'v ') + esc(nx.opp) + '</div><div class="meta">' + esc(dLong(nx.date)) + (nx.ko ? ' · ' + esc(nx.ko) : '') + (nx.comp ? ' · ' + esc(nx.comp) : '') + '</div>'
-    + (q.spond ? '<div class="meta" style="margin-top:6px"><a target="_blank" rel="noopener" href="' + esc(q.spond) + '" style="color:#fff;font-weight:700">Available? Say so on Spond ›</a></div>' : '');
+    + (q.spond ? '<div class="meta" style="margin-top:6px"><a' + spondAttrs(q.spond) + ' style="color:#fff;font-weight:700">Available? Say so on Spond ›</a></div>' : '');
   else h += '<div class="kick">' + esc(q.club) + ' S&amp;C</div><div class="big">Hub</div>';
   if (ls) h += '<div class="meta" style="margin-top:6px">Last time out: <b style="color:#fff">' + esc(ls.result) + '</b> ' + (ls.ha === 'Away' ? '@ ' : 'v ') + esc(ls.opp) + '</div>';
   h += leagueLine();
@@ -476,6 +477,10 @@ function vHome(){
   h += '</div></div>';
   return h;
 }
+function spondAttrs(u){
+  if (phoneKind() && /(^|\/\/)(www\.)?spond\.com\//i.test(u)) return ' href="https://spond.com/landing"';
+  return ' target="_blank" rel="noopener" href="' + esc(u) + '"';
+}
 /* What's on: two-week mini calendar from the Season calendar and the fixtures, then the next few things. */
 var KIND = {game: ['Game', '🏉'], training: ['Training', '🏉'], session: ['Gym / fitness', '💪'], testing: ['Testing day', '⏱️'], event: ['Club event', '🎉']};
 var KORDER = ['game', 'training', 'session', 'testing', 'event'];
@@ -485,7 +490,7 @@ function whatsOn(){
   var t = new Date(Number(today.slice(0,4)), Number(today.slice(5,7)) - 1, Number(today.slice(8,10)));
   var mon = new Date(t); mon.setDate(t.getDate() - ((t.getDay() + 6) % 7));
   var byDay = {}; items.forEach(function(x){ (byDay[x.date] = byDay[x.date] || []).push(x.kind); });
-  var h = '<section class="card"><div class="h-sec">What’s on' + (q.spond ? '<a class="more" target="_blank" rel="noopener" href="' + esc(q.spond) + '">Book on Spond ›</a>' : '') + '</div>';
+  var h = '<section class="card"><div class="h-sec">What’s on' + (q.spond ? '<a class="more"' + spondAttrs(q.spond) + '>Book on Spond ›</a>' : '') + '</div>';
   h += '<div class="cal">' + ['M','T','W','T','F','S','S'].map(function(d){ return '<div class="h">' + d + '</div>'; }).join('');
   for (var i = 0; i < 14; i++) {
     var d = new Date(mon); d.setDate(mon.getDate() + i);
@@ -516,8 +521,8 @@ function fresh(){ var q = S.squad; return !q.latest && !q.feed.length && !q.reco
    Only coaches add results (from this page in coach mode), so every one is witnessed. */
 function vFun(){
   var q = S.squad, f = q.fun || [], coach = !!(S.pin && (S.coach || LS.get('prfc_coachmode')));
-  var h = '';
-  if (!f.length) return '<section class="card"><div class="empty"><div class="em">🍺</div>No boards yet. Coaches set them up on the Just for fun tab of the coach sheet.</div></section>';
+  var h = '<section class="card hero"><div class="kick">' + esc(q.club) + '</div><div class="big">Just for fun</div><div class="meta">Bragging rights only. Nothing here counts towards your scores.</div></section>';
+  if (!f.length) return h + '<section class="card"><div class="empty"><div class="em">🍺</div>No boards yet. Coaches set them up on the Just for fun tab of the coach sheet.</div></section>';
   if (coach) {
     var d = S.funDraft || {board: f[0].name};
     h += '<section class="card"><div class="h-sec">Add a result</div><div class="ctrls">'
