@@ -478,12 +478,12 @@ function whatsOn(){
     var uniq = ks.filter(function(k, j){ return ks.indexOf(k) === j; });
     h += '<div class="d' + (iso === today ? ' today' : iso < today ? ' past' : '') + '">' + d.getDate() + '<div class="dots">' + uniq.map(function(k){ return '<i class="k-' + k + '"></i>'; }).join('') + '</div></div>';
   }
-  h += '</div><div class="legend2"><span><i class="k-game"></i>Game</span><span><i class="k-testing"></i>Testing</span><span><i class="k-session"></i>Session</span></div>';
+  h += '</div><div class="legend2"><span><i class="k-game"></i>Game</span><span><i class="k-testing"></i>Testing</span><span><i class="k-session"></i>Training / gym</span></div>';
   var next = items.filter(function(x){ return x.date >= today; }).slice(0, 5);
   if (!next.length) h += '<div class="small muted" style="margin-top:8px">Nothing planned yet. Coaches add sessions and testing days on the Season calendar.</div>';
   else h += next.map(function(x){
     var p = x.date.split('-'), dd = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
-    return '<div class="ag"><div class="dt"><span>' + DAY[dd.getDay()] + '</span><b>' + dd.getDate() + '</b><span>' + MON[dd.getMonth()] + '</span></div><div class="kb k-' + x.kind + '"></div><div class="grow"><div class="name">' + esc(x.what) + '</div><div class="tiny muted">' + esc([x.what === KIND[x.kind][0] ? '' : KIND[x.kind][0], x.ko, x.sub].filter(Boolean).join(' · ')) + '</div></div></div>';
+    return '<div class="ag"><div class="dt"><span>' + DAY[dd.getDay()] + '</span><b>' + dd.getDate() + '</b><span>' + MON[dd.getMonth()] + '</span></div><div class="kb k-' + x.kind + '"></div><div class="grow"><div class="name">' + esc(x.what) + '</div><div class="tiny muted">' + esc([x.kind === 'session' || x.what === KIND[x.kind][0] ? '' : KIND[x.kind][0], x.ko, x.sub].filter(Boolean).join(' · ')) + '</div></div></div>';
   }).join('');
   return h + '</section>';
 }
