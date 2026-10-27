@@ -940,10 +940,11 @@ function pvTick(){ var ok = document.getElementById('pvok').checked; document.qu
 function answerPrivacy(show, btn){
   document.querySelectorAll('.choice .btn').forEach(function(b){ b.disabled = true; });
   btn.textContent = 'Saving…';
+  var slow = stillSaving(btn, false);
   call('api_privacy', S.token, show).then(function(me){
-    S.me = me; keep(); closePb(); render(); refreshData();
+    slow(); S.me = me; keep(); closePb(); render(); refreshData();
     toast(show ? 'Done. You’re on the leaderboards.' : 'Done. You’re off the leaderboards; your own page works as normal.');
-  }).catch(function(e){ document.getElementById('pverr').textContent = e.message; pvTick(); btn.textContent = show ? 'Yes, show me' : 'No, keep me off'; });
+  }).catch(function(e){ slow(); document.getElementById('pverr').textContent = e.message; pvTick(); btn.textContent = show ? 'Yes, show me' : 'No, keep me off'; });
 }
 function setBoards(show, btn){
   btn.disabled = true;
@@ -954,6 +955,16 @@ function privacyBanner(){
   var el = document.getElementById('banner');
   if (S.me || S.view === 'coach' || LS.get('prfc_coachmode') || LS.get('prfc_pv_seen') || document.getElementById('modal').innerHTML) { el.innerHTML = ''; return; }
   el.innerHTML = '<div class="banner"><div class="grow">This app shows Paisley RFC players’ names and results. <a href="javascript:void 0" onclick="openPrivacy(false)">How we use data</a></div><button class="btn red sm" onclick="LS.set(\'prfc_pv_seen\',\'1\');privacyBanner()">OK</button></div>';
+}
+
+/* Saves go to Google Sheets: usually a few seconds, up to a minute on a weak signal. If one takes a while, say so,
+   so nobody thinks the app is stuck. Returns a function that cancels the reminder. */
+function stillSaving(btn, say){
+  var t = setTimeout(function(){
+    if (btn && btn.disabled) btn.textContent = 'Still saving…';
+    if (say) toast('Still saving. It can take up to a minute on a weak signal, so keep the app open.');
+  }, 7000);
+  return function(){ clearTimeout(t); };
 }
 
 /* ---------------- log a PB ---------------- */
@@ -972,7 +983,8 @@ function openPb(){
     + '<div class="field"><label for="pbdate">Date you did it</label><input class="inp" type="date" id="pbdate" value="' + todayIso() + '" max="' + todayIso() + '"></div>'
     + '<div class="field"><label for="pbnotes">Who saw it? <span class="muted">(helps your coach check it)</span></label><input class="inp" id="pbnotes" placeholder="Name of who saw it, or a video link"></div>'
     + '<div class="err" id="pberr"></div><button class="btn red wide" id="pbgo" onclick="submitPb()">Save PB</button>'
-    + '<div class="tiny muted" style="text-align:center;margin-top:10px">' + (q.strictPbs ? 'Your coach checks every PB before it goes on the boards.' : 'Sensible PBs count straight away and show as self-logged until a coach checks them. Big jumps wait for your coach first.') + '</div>';
+    + '<div class="tiny muted" style="text-align:center;margin-top:10px">Saving takes a few seconds, up to a minute on a weak signal. Keep this open until you see the tick.</div>'
+    + '<div class="tiny muted" style="text-align:center;margin-top:6px">' + (q.strictPbs ? 'Your coach checks every PB before it goes on the boards.' : 'Sensible PBs count straight away and show as self-logged until a coach checks them. Big jumps wait for your coach first.') + '</div>';
   h += '</div></div></div>';
   document.getElementById('modal').innerHTML = h;
   sheetSwipe();
@@ -1013,8 +1025,9 @@ function submitPb(){
   if (!f.test) { err.textContent = 'Pick a test.'; return; }
   if (!String(f.result).trim()) { err.textContent = 'Type your result.'; return; }
   err.textContent = ''; go.disabled = true; go.textContent = 'Saving…';
+  var slow = stillSaving(go, false);
   call('api_logPb', S.me ? S.token : '', f).then(function(r){
-    refreshData();
+    slow(); refreshData();
     var good = r.auto && r.pb;
     var share = '🏉 New PB! ' + r.name + ' · ' + label(r.test) + ': ' + fmtU(r.test, r.value) + (r.was != null ? ' (was ' + fmtU(r.test, r.was) + ')' : '') + '. Paisley RFC S&C ' + appUrl();
     var h = '<div class="done"><div class="tick' + (r.auto ? '' : ' wait') + '">' + (r.auto ? '✓' : '…') + '</div>'
@@ -1025,7 +1038,7 @@ function submitPb(){
       + (good ? '<a class="btn green wide" target="_blank" rel="noopener" href="' + waShare(share) + '">' + ic('share') + 'Share in the squad chat</a><div style="height:8px"></div>' : '')
       + '<button class="btn line wide" onclick="closePb();render()">Done</button></div>';
     document.getElementById('pbbody').innerHTML = h;
-  }).catch(function(e){ err.textContent = e.message; go.disabled = false; go.textContent = 'Save PB'; });
+  }).catch(function(e){ slow(); err.textContent = e.message; go.disabled = false; go.textContent = 'Save PB'; });
 }
 
 /* ---------------- coach ---------------- */
@@ -1119,9 +1132,10 @@ function vRegister(){
 }
 function saveReg(){
   var btn = document.getElementById('savebtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  var slow = stillSaving(btn, true);
   var changes = Object.keys(S.reg).map(function(n){ return {name: n, inTest: S.reg[n]}; });
-  call('api_setPlayers', S.pin, changes).then(function(c){ S.coach = c; S.reg = {}; S.t.reg = false; toast('Saved. ' + c.players.filter(function(p){ return p.inTest; }).length + ' players in for testing day ✓'); render(); })
-    .catch(function(e){ toast(e.message); if (btn) { btn.disabled = false; btn.textContent = 'Save'; } });
+  call('api_setPlayers', S.pin, changes).then(function(c){ slow(); S.coach = c; S.reg = {}; S.t.reg = false; toast('Saved. ' + c.players.filter(function(p){ return p.inTest; }).length + ' players in for testing day ✓'); render(); })
+    .catch(function(e){ slow(); toast(e.message); if (btn) { btn.disabled = false; btn.textContent = 'Save'; } });
 }
 function vTesting(){
   if (S.t.reg) return vRegister();
@@ -1250,14 +1264,16 @@ document.addEventListener('keydown', function(e){
 });
 function saveTesting(){
   var btn = document.getElementById('savebtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  var slow = stillSaving(btn, true);
   var rows = Object.keys(S.t.dirty).filter(function(p){ return Object.keys(S.t.dirty[p]).length; }).map(function(p){ return {player: p, values: S.t.dirty[p]}; });
   saveDraft();
   call('api_saveTesting', S.pin, {date: S.t.date, round: S.t.round, rows: rows}).then(function(c){
-    S.coach = c; S.t.dirty = {}; LS.del('prfc_tdraft');
+    slow(); S.coach = c; S.t.dirty = {}; LS.del('prfc_tdraft');
     toast('Saved ' + c.saved.players + ' player' + (c.saved.players === 1 ? '' : 's') + ' ✓');
     render();
     call('api_squad').then(function(q){ S.squad = q; indexTests(); keep(); }).catch(function(){});
   }).catch(function(e){
+    slow();
     toast(e.message === NOSIG ? 'No signal. Your numbers are kept on this phone. Tap Save again when you’re back online.' : e.message);
     if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
   });
@@ -1383,10 +1399,11 @@ function vByPosition(){
 }
 function saveSquad(){
   var btn = document.getElementById('savebtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  var slow = stillSaving(btn, true);
   var changes = Object.keys(S.sq).map(function(n){ var x = S.sq[n]; return {name: n, pos: x.pos, status: x.status}; });
   S.sqOpen = {};
-  call('api_setPlayers', S.pin, changes).then(function(c){ S.coach = c; S.sq = {}; toast('Saved ' + changes.length + ' player' + (changes.length === 1 ? '' : 's') + ' ✓'); render(); refreshData(); })
-    .catch(function(e){ toast(e.message); if (btn) { btn.disabled = false; btn.textContent = 'Save'; } });
+  call('api_setPlayers', S.pin, changes).then(function(c){ slow(); S.coach = c; S.sq = {}; toast('Saved ' + changes.length + ' player' + (changes.length === 1 ? '' : 's') + ' ✓'); render(); refreshData(); })
+    .catch(function(e){ slow(); toast(e.message); if (btn) { btn.disabled = false; btn.textContent = 'Save'; } });
 }
 function resetLink(btn){
   var name = btn.getAttribute('data-n');
