@@ -53,6 +53,7 @@ h1,h2,h3{margin:0}
 .hero .meta{color:#C9D0E6;font-size:13px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
 .stats.s4{grid-template-columns:repeat(4,1fr)}
+.howc{background:var(--tint);border-radius:12px;padding:10px 12px;font-size:12.5px;color:var(--slate);margin:4px 0 12px}.howc b{color:var(--ink)}.howc ul{margin:4px 0 0;padding-left:18px}.howc li{margin:2px 0}
 .fv-hd{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}.fv-hd span:last-child{text-align:right}
 .fv-row{padding:8px 0;border-top:1px solid var(--line);cursor:pointer}.fv-t{font-size:12px;font-weight:700;color:var(--slate);margin-bottom:5px}
 .fv-c{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fv{border-radius:10px;padding:7px 10px;background:var(--tint);min-width:0}.fv.b{text-align:right;background:var(--redbg)}
@@ -683,7 +684,7 @@ function vBoards(){
     h += '<div class="lb">' + show.map(function(r, i){ return lbRow(r, i, b.key, r.n === meName); }).join('') + '</div>';
     if (meIdx >= 25) h += '<div class="lb" style="margin-top:6px;border-top:2px dashed var(--line);padding-top:6px">' + lbRow(rows[meIdx], meIdx, b.key, true) + '</div>';
     if (rows.length > 25) h += '<div class="tiny muted" style="margin-top:8px">Top 25 of ' + rows.length + '.</div>';
-    if (b.key !== 'Overall' && rows.some(function(r){ return r.sl; })) h += '<div class="tiny muted" style="margin-top:8px">Self-logged: a PB a player logged that a coach hasn’t checked yet. Testing-day results are always checked.</div>';
+    if (b.key !== 'Overall') h += '<div class="tiny muted" style="margin-top:10px">' + (rows.some(function(r){ return r.sl; }) ? '<b>Self-logged</b> means a coach hasn’t checked it yet. ' : '') + 'Every result needs checking, by a coach on a testing day or with a video. Anything that can’t be checked may need to be redone.</div>';
   }
   h += '</section>';
   return h;
@@ -1004,17 +1005,20 @@ function stillSaving(btn, say){
 function openPb(){
   var q = S.squad, me = S.me;
   var cats = {};
-  q.pbTests.forEach(function(t){ var c = t.cat === 'Body' ? 'Body' : t.cat; (cats[c] = cats[c] || []).push(t); });
+  var tday = q.pbTests.filter(function(t){ return t.testDay; });
+  q.pbTests.forEach(function(t){ if (t.testDay) return; var c = t.cat === 'Body' ? 'Body' : t.cat; (cats[c] = cats[c] || []).push(t); });
   var grid = ['Running','Power','Gym','Body'].filter(function(c){ return cats[c]; }).map(function(c){
     return '<div class="tg"><div class="tgl">' + c + '</div><div class="tgc">' + cats[c].map(function(t){ return '<button type="button" class="chip pbt" data-k="' + esc(t.key) + '" onclick="pickTest(this)">' + esc((TM[t.key] && TM[t.key].short) || t.label) + '</button>'; }).join('') + '</div></div>';
   }).join('');
   var h = '<div class="overlay" onclick="if(event.target===this)closePb()"><div class="sheet" role="dialog" aria-label="Log a PB"><div class="grab"></div><div class="sheethd"><h2>LOG A PB</h2><button class="x" onclick="closePb()" aria-label="Close">✕</button></div><div id="pbbody">';
   if (!me) h += '<div class="field"><label for="pbname">Your name</label><select class="inp" id="pbname"><option value="">Pick your name</option>' + q.players.map(function(n){ return '<option>' + esc(n) + '</option>'; }).join('') + '</select></div>';
   else h += '<div class="small muted" style="margin:-6px 0 12px">Logging as <b style="color:var(--ink)">' + esc(me.name) + '</b></div>';
-  h += '<div class="field"><label>Test</label><input type="hidden" id="pbtest" value="">' + grid + '</div>'
+  h += '<div class="field"><label>Test</label><input type="hidden" id="pbtest" value="">' + grid
+    + (tday.length ? '<div class="tiny muted" style="margin-top:6px">' + esc(tday.map(function(t){ return (TM[t.key] && TM[t.key].short) || t.label; }).join(', ')) + ': done on testing days, so your coach records those.</div>' : '') + '</div>'
     + '<div class="field"><label for="pbres">Result</label><input class="inp" id="pbres" autocomplete="off" inputmode="decimal" placeholder="Pick a test first"><div class="hint" id="pbhint"></div></div>'
     + '<div class="field"><label for="pbdate">Date you did it</label><input class="inp" type="date" id="pbdate" value="' + todayIso() + '" max="' + todayIso() + '"></div>'
-    + '<div class="field"><label for="pbnotes">Who saw it? <span class="muted">(helps your coach check it)</span></label><input class="inp" id="pbnotes" placeholder="Name of who saw it, or a video link"></div>'
+    + '<div class="field"><label for="pbnotes">Video link or who saw it</label><input class="inp" id="pbnotes" placeholder="Paste a video link, or the coach who saw it"></div>'
+    + howCount()
     + '<div class="err" id="pberr"></div><button class="btn red wide" id="pbgo" onclick="submitPb()">Save PB</button>'
     + '<div class="tiny muted" style="text-align:center;margin-top:10px">Saving takes a few seconds, up to a minute on a weak signal. Keep this open until you see the tick.</div>'
     + '<div class="tiny muted" style="text-align:center;margin-top:6px">' + (q.strictPbs ? 'Your coach checks every PB before it goes on the boards.' : 'Sensible PBs count straight away and show as self-logged until a coach checks them. Big jumps wait for your coach first.') + '</div>';
@@ -1036,6 +1040,14 @@ function sheetSwipe(){
   });
 }
 document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && document.querySelector('#modal .x')) closePb(); });
+/* How results count: shown on Log a PB and under the leaderboards. */
+function howCount(){
+  return '<div class="howc"><b>How results count</b><ul>'
+    + '<li>Every result needs checking: by a coach on a testing day, or with a video.</li>'
+    + '<li>Gym lifts and runs: film it, or have a coach see it, and add it above.</li>'
+    + '<li>Sprints and jumps are done on testing days.</li>'
+    + '<li>Anything that can’t be checked may need to be redone.</li></ul></div>';
+}
 function pickTest(el){
   document.getElementById('pbtest').value = el.getAttribute('data-k');
   document.querySelectorAll('.pbt').forEach(function(b){ b.classList.toggle('on', b === el); });
