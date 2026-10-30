@@ -53,6 +53,10 @@ h1,h2,h3{margin:0}
 .hero .meta{color:#C9D0E6;font-size:13px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
 .stats.s4{grid-template-columns:repeat(4,1fr)}
+.fv-hd{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}.fv-hd span:last-child{text-align:right}
+.fv-row{padding:8px 0;border-top:1px solid var(--line);cursor:pointer}.fv-t{font-size:12px;font-weight:700;color:var(--slate);margin-bottom:5px}
+.fv-c{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fv{border-radius:10px;padding:7px 10px;background:var(--tint);min-width:0}.fv.b{text-align:right;background:var(--redbg)}
+.fv-v{font-weight:800;font-size:16px;color:var(--navy)}.fv.b .fv-v{color:var(--red)}.fv-n{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fv.none{display:flex;align-items:center;opacity:.7}.fv.b.none{justify-content:flex-end}.fv.me{box-shadow:inset 0 0 0 2px var(--gold)}
 @media (max-width:520px){.stats.s4{grid-template-columns:repeat(2,1fr)}}
 .stat{background:rgba(255,255,255,.08);border-radius:10px;padding:10px}
 .stat b{display:block;font-size:20px;font-weight:700}
@@ -659,8 +663,9 @@ function teamDetail(rows){
 /* ---------------- leaderboards ---------------- */
 function vBoards(){
   var q = S.squad, b = S.board, h = '';
-  var keys = [['Overall','Overall']].concat(q.tests.map(function(t){ return [t.key, t.label]; }));
+  var keys = [['Overall','Overall'], ['_fvb','Fwd v Backs']].concat(q.tests.map(function(t){ return [t.key, t.label]; }));
   h += '<div class="chips" id="lbchips">' + keys.map(function(k){ return '<button class="chip ' + (b.key === k[0] ? 'on' : '') + '" data-k="' + esc(k[0]) + '" onclick="setBoard(\'key\',this.getAttribute(\'data-k\'))">' + esc(k[1]) + '</button>'; }).join('') + '</div>';
+  if (b.key === '_fvb') return h + fvbView();
   h += '<div class="seg">' + ['Squad','Forwards','Backs'].map(function(g){ return '<button class="' + (b.grp === g ? 'on' : '') + '" onclick="setBoard(\'grp\',\'' + g + '\')">' + g + '</button>'; }).join('') + '</div>';
   var rows = b.key === 'Overall' ? q.overall : (q.boards[b.key] || []), any = rows.length;
   if (b.grp !== 'Squad') rows = rows.filter(function(r){ return r.u === b.grp; });
@@ -682,6 +687,25 @@ function vBoards(){
   }
   h += '</section>';
   return h;
+}
+/* Forwards v Backs: the best forward and the best back in every test, side by side. Best results only, no points. */
+function fvbView(){
+  var q = S.squad, meName = S.me ? S.me.name : '';
+  var top = function(rows, u){ return (rows || []).filter(function(r){ return r.u === u; })[0]; };
+  var cell = function(r, key, cls){
+    if (!r) return '<div class="fv ' + cls + ' none"><div class="tiny muted">Nobody yet</div></div>';
+    return '<div class="fv ' + cls + (r.n === meName ? ' me' : '') + '"><div class="fv-v">' + esc(key === 'Overall' ? String(r.v) : fmtU(key, r.v)) + '</div><div class="fv-n">' + esc(r.n) + (r.n === meName ? ' <span class="tag">You</span>' : '') + '</div></div>';
+  };
+  var rows = [['Overall', 'Overall score', q.overall]].concat(q.tests.map(function(t){ return [t.key, t.label, q.boards[t.key]]; }));
+  var h = '<section class="card"><div class="h-sec">Forwards v Backs</div>'
+    + '<div class="small muted" style="margin:-6px 0 10px">The best forward and the best back in every test. Tap one for the full board.</div>'
+    + '<div class="fv-hd"><span>Forwards</span><span>Backs</span></div>';
+  h += rows.map(function(x){
+    var t = TM[x[0]], low = t && t.dir < 0;
+    return '<div class="fv-row" onclick="setBoard(\'grp\',\'Squad\');setBoard(\'key\',this.getAttribute(\'data-k\'))" data-k="' + esc(x[0]) + '"><div class="fv-t">' + esc(x[1]) + (low ? ' <span class="muted" style="font-weight:400">· lower is better</span>' : '') + '</div>'
+      + '<div class="fv-c">' + cell(top(x[2], 'Forwards'), x[0], 'f') + cell(top(x[2], 'Backs'), x[0], 'b') + '</div></div>';
+  }).join('');
+  return h + '</section>';
 }
 function lbRow(r, i, key, me){
   var cls = i < 3 ? ' g' + (i+1) : '';
