@@ -52,6 +52,8 @@ h1,h2,h3{margin:0}
 .hero .big{font-family:Orbitron,Roboto,sans-serif;font-weight:700;font-size:19px;margin:6px 0 2px;line-height:1.25}
 .hero .meta{color:#C9D0E6;font-size:13px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.stats.s4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:520px){.stats.s4{grid-template-columns:repeat(2,1fr)}}
 .stat{background:rgba(255,255,255,.08);border-radius:10px;padding:10px}
 .stat b{display:block;font-size:20px;font-weight:700}
 .stat span{font-size:11px;color:#C9D0E6}
@@ -454,12 +456,13 @@ function vHome(){
   if (ls) h += '<div class="meta" style="margin-top:6px">Last time out: <b style="color:#fff">' + esc(ls.result) + '</b> ' + (ls.ha === 'Away' ? '@ ' : 'v ') + esc(ls.opp) + '</div>';
   h += leagueLine();
   if (lt && q.nextTesting) h += '<div class="meta" style="margin-top:6px">Next testing day: <b style="color:#fff">' + esc(dLong(q.nextTesting)) + '</b></div>';
-  h += '<div class="stats">'
+  h += '<div class="stats' + (q.firstsWeek != null ? ' s4' : '') + '">'
     + (lt ? '<div class="stat"><b>' + esc(lt.round) + '</b><span>Last testing · ' + esc(dShort(lt.date)) + '</span></div>'
           + '<div class="stat"><b>' + lt.tested + '</b><span>Players tested</span></div>'
           : '<div class="stat"><b>' + (q.nextTesting ? esc(dShort(q.nextTesting)) : 'TBC') + '</b><span>First testing day</span></div>'
           + '<div class="stat"><b>' + (q.squadSize || q.players.length) + '</b><span>In the squad</span></div>')
-    + '<div class="stat"><b>' + q.pbsWeek + '</b><span>PBs this week</span></div></div></section>';
+    + '<div class="stat"><b>' + (q.pbsWeek || 0) + '</b><span>PBs this week</span></div>'
+    + (q.firstsWeek != null ? '<div class="stat"><b>' + q.firstsWeek + '</b><span>First posts this week</span></div>' : '') + '</div></section>';
   h += '<div class="ctas"><button class="btn red" onclick="openPb()">' + ic('plus') + 'Log a PB</button>'
     + '<button class="btn line" onclick="go(\'' + (S.me || S.token ? 'me' : 'boards') + '\')">' + (S.me || S.token ? ic('user') + 'My page' : ic('trophy') + 'Leaderboards') + '</button></div>';
   if (fresh()) {
@@ -1034,10 +1037,11 @@ function submitPb(){
   var slow = stillSaving(go, false);
   call('api_logPb', S.me ? S.token : '', f).then(function(r){
     slow(); refreshData();
-    var good = r.auto && r.pb;
-    var share = '🏉 New PB! ' + r.name + ' · ' + label(r.test) + ': ' + fmtU(r.test, r.value) + (r.was != null ? ' (was ' + fmtU(r.test, r.was) + ')' : '') + '. Paisley RFC S&C ' + appUrl();
+    var good = r.auto && r.pb, first = good && r.was == null;
+    var share = (first ? '🏉 First post! ' + r.name + ' · ' + label(r.test) + ': ' + fmtU(r.test, r.value)
+      : '🏉 New PB! ' + r.name + ' · ' + label(r.test) + ': ' + fmtU(r.test, r.value) + (r.was != null ? ' (was ' + fmtU(r.test, r.was) + ')' : '')) + '. Paisley RFC S&C ' + appUrl();
     var h = '<div class="done"><div class="tick' + (r.auto ? '' : ' wait') + '">' + (r.auto ? '✓' : '…') + '</div>'
-      + '<h2 style="margin-bottom:6px">' + (good ? 'NEW PB!' : r.auto ? 'LOGGED' : 'SENT TO COACH') + '</h2>'
+      + '<h2 style="margin-bottom:6px">' + (first ? 'FIRST POST!' : good ? 'NEW PB!' : r.auto ? 'LOGGED' : 'SENT TO COACH') + '</h2>'
       + '<div class="muted">' + esc(label(r.test)) + ' · <b style="color:var(--ink)">' + esc(fmtU(r.test, r.value)) + '</b></div>'
       + '<div class="small" style="margin:8px 0 ' + (r.auto ? '4px' : '16px') + '">' + esc(r.msg) + '</div>'
       + (r.auto ? '<div class="tiny muted" style="margin-bottom:16px">' + (r.pb && !(S.me && S.me.hidden) ? 'It’s on your page and the leaderboards now.' : 'It’s on your page now.') + '</div>' : '')
