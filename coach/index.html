@@ -1330,14 +1330,38 @@ function vInbox(){
     var auto = x.by === 'Auto';
     return '<div class="item"><div class="grow"><div class="name">' + esc(x.name) + '</div><div class="small muted"><span class="tag ' + (auto ? 'sl">Self-logged' : 'ck">Coach ✓') + '</span> ' + esc(label(x.test)) + ' · ' + esc(x.result) + ' · ' + esc(dShort(x.date)) + (x.notes ? ' · “' + esc(x.notes) + '”' : '') + '</div></div>'
       + (auto ? '<button class="btn green sm" onclick="inboxAct(' + x.row + ',this,\'verify\')" data-n="' + esc(x.name) + '">Checked ✓</button>' : '')
-      + '<button class="btn line sm" onclick="inboxAct(' + x.row + ',this,\'undo\')" data-n="' + esc(x.name) + '">Undo</button></div>';
+      + takeOutBtn(x) + '</div>';
   }).join('') + '</div>';
-  return h + '</section>';
+  h += '</section>';
+  // any logged result, however old: find the player, take it out
+  h += '<section class="card"><div class="h-sec">Find a player’s results</div><div class="small muted" style="margin:-6px 0 10px">Spotted one that’s not right? Find the player and take it out. It comes off their page and the boards.</div>'
+    + '<input class="inp" id="lgq" placeholder="Type a player’s name" autocomplete="off" value="' + esc(S.lgq || '') + '" oninput="S.lgq=this.value;lgFind()">'
+    + '<div id="lgres" style="margin-top:8px">' + lgList() + '</div></section>';
+  return h;
 }
+/* Take out: two taps, so a slip doesn't remove anything. */
+function takeOutBtn(x){
+  return '<button class="btn line sm" onclick="takeOut(this,' + x.row + ')" data-n="' + esc(x.name) + '">Take out</button>';
+}
+function takeOut(btn, row){
+  if (btn.getAttribute('data-sure')) return inboxAct(row, btn, 'reject');
+  btn.setAttribute('data-sure', '1'); btn.textContent = 'Sure? Tap again'; btn.classList.add('red'); btn.classList.remove('line');
+  setTimeout(function(){ if (btn.isConnected && !btn.disabled) { btn.removeAttribute('data-sure'); btn.textContent = 'Take out'; btn.classList.remove('red'); btn.classList.add('line'); } }, 4000);
+}
+function lgList(){
+  var q = String(S.lgq || '').trim().toLowerCase(), all = (S.coach && S.coach.logged) || [];
+  if (q.length < 2) return '<div class="tiny muted">' + all.length + ' logged result' + (all.length === 1 ? '' : 's') + ' so far. Testing-day results are changed on the Testing tab of the coach sheet.</div>';
+  var hits = all.filter(function(x){ return x.name.toLowerCase().indexOf(q) >= 0; });
+  if (!hits.length) return '<div class="tiny muted">No logged results for that name.</div>';
+  return '<div class="list">' + hits.slice(0, 40).map(function(x){
+    return '<div class="item"><div class="grow"><div class="name">' + esc(x.name) + '</div><div class="small muted">' + esc(label(x.test)) + ' · <b style="color:var(--ink)">' + esc(x.result) + '</b> · ' + esc(dShort(x.date)) + (x.notes ? ' · “' + esc(x.notes) + '”' : '') + '</div></div>' + takeOutBtn(x) + '</div>';
+  }).join('') + '</div>' + (hits.length > 40 ? '<div class="tiny muted" style="margin-top:6px">Showing 40 of ' + hits.length + '. Type more of the name.</div>' : '');
+}
+function lgFind(){ var el = document.getElementById('lgres'); if (el) el.innerHTML = lgList(); }
 function inboxAct(row, btn, act){
   btn.disabled = true;
   call('api_inbox', S.pin, row, btn.getAttribute('data-n'), act).then(function(c){
-    S.coach = c; toast(act === 'approve' ? 'Counted ✓' : act === 'verify' ? 'Marked as checked ✓' : act === 'reject' ? 'Binned' : 'Moved back to waiting'); render();
+    S.coach = c; toast(act === 'approve' ? 'Counted ✓' : act === 'verify' ? 'Marked as checked ✓' : act === 'reject' ? 'Taken out' : 'Moved back to waiting'); render();
     call('api_squad').then(function(q){ S.squad = q; indexTests(); }).catch(function(){});
   }).catch(function(e){ toast(e.message); btn.disabled = false; });
 }
