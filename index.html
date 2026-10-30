@@ -516,19 +516,19 @@ function whatsOn(){
   }
   var seen = KORDER.filter(function(k){ return items.some(function(x){ return x.kind === k; }); });
   h += '</div><div class="legend2">' + seen.map(function(k){ return '<span><i class="k-' + k + '"></i>' + (k === 'testing' ? 'Testing' : KIND[k][0]) + '</span>'; }).join('') + '</div>';
-  // regular training shows once (the next one, with its usual days), so games, testing and club events aren't pushed off the list
-  var tr = items.filter(function(x){ return x.kind === 'training' && x.date >= today; }), wd = {};
-  tr.forEach(function(x){ var p = x.date.split('-'), n = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).getDay(); wd[n] = (wd[n] || 0) + 1; });
-  var usual = [1,2,3,4,5,6,0].filter(function(n){ return wd[n] >= 2; }).map(function(n){ return DAY[n]; });
-  var next = items.filter(function(x){ return x.date >= today && (x.kind !== 'training' || x === tr[0]); }).slice(0, 6).map(function(x){
-    return x === tr[0] && usual.length ? {date: x.date, kind: x.kind, what: x.what, sub: 'Usually ' + usual.join(' & ')} : x;
-  });
+  // every session is listed: the next two weeks to start with, and the rest of the next five weeks a tap away
+  var upcoming = items.filter(function(x){ return x.date >= today; });
+  var cut = new Date(t); cut.setDate(t.getDate() + 14); cut = isoOf(cut);
+  var soon = upcoming.filter(function(x){ return x.date < cut; });
+  if (soon.length < 4) soon = upcoming.slice(0, 4);
+  var next = S.allOn ? upcoming : soon, more = upcoming.length - soon.length;
   if (q.spondInvite) h += '<div class="tiny muted" style="margin:2px 0 6px">New to the squad? <a target="_blank" rel="noopener" href="' + esc(q.spondInvite) + '">Join us on Spond ›</a></div>';
   if (!next.length) h += '<div class="small muted" style="margin-top:8px">Nothing planned yet. Coaches add sessions and testing days on the Season calendar.</div>';
   else h += next.map(function(x){
     var p = x.date.split('-'), dd = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
     return '<div class="ag"><div class="dt"><span>' + DAY[dd.getDay()] + '</span><b>' + dd.getDate() + '</b><span>' + MON[dd.getMonth()] + '</span></div><div class="kb k-' + x.kind + '"></div><div class="grow"><div class="name">' + esc(x.what) + '</div>' + (function(sub){ return sub ? '<div class="tiny muted">' + esc(sub) + '</div>' : ''; })([x.kind === 'game' && x.what !== 'Game' ? 'Game' : '', x.ko, x.sub].filter(Boolean).join(' · ')) + '</div></div>';
   }).join('');
+  if (more > 0) h += '<button class="btn line wide sm" style="margin-top:10px" onclick="S.allOn=!S.allOn;render()">' + (S.allOn ? 'Show fewer' : 'Show the next 5 weeks (' + more + ' more)') + '</button>';
   return h + '</section>';
 }
 /* A brand-new season: no testing results, records or PBs yet. */

@@ -1,7 +1,7 @@
 // Opens fast even on a poor signal. The page comes from the network if it answers within 2.5 s, otherwise from the
 // last saved copy (and the saved copy is updated in the background). Icons, fonts and the chart library are fixed for
 // each version, so they come straight from the saved copy.
-const CACHE = 'prfc-v21';
+const CACHE = 'prfc-v22';
 const SHELL = ['./', './coach/', './icons/crest.png', './icons/icon-192.png', './icons/coach-192.png', './manifest.webmanifest', './coach/manifest.webmanifest'];
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).catch(() => {})); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
