@@ -53,11 +53,6 @@ h1,h2,h3{margin:0}
 .hero .meta{color:#C9D0E6;font-size:13px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
 .stats.s4{grid-template-columns:repeat(4,1fr)}
-.bt{display:flex;align-items:stretch;gap:8px}.bt-side{flex:1;border-radius:12px;padding:10px 12px;background:var(--tint)}
-.bt-side.b{text-align:right}.bt-n{font-size:30px;font-weight:800;line-height:1.1;color:var(--navy)}.bt-side.b .bt-n{color:var(--red)}
-.bt-u{font-weight:700;margin:2px 0 4px}.bt-side.lead{box-shadow:inset 0 0 0 2px var(--navy)}.bt-side.b.lead{box-shadow:inset 0 0 0 2px var(--red)}
-.bt-v{align-self:center;font-weight:800;color:var(--muted);font-size:13px}
-.bt-bar{height:8px;border-radius:99px;background:var(--red);margin-top:10px;overflow:hidden}.bt-bar i{display:block;height:100%;background:var(--navy)}
 @media (max-width:520px){.stats.s4{grid-template-columns:repeat(2,1fr)}}
 .stat{background:rgba(255,255,255,.08);border-radius:10px;padding:10px}
 .stat b{display:block;font-size:20px;font-weight:700}
@@ -343,7 +338,6 @@ var LS = {
   del: function(k){ try { window.localStorage.removeItem(k); } catch(e){} }
 };
 var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 var DAY = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function todayIso(){ var d = new Date(); return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2); }
 function dShort(iso){ if(!iso) return ''; var p = iso.split('-'); return Number(p[2]) + ' ' + MON[Number(p[1])-1]; }
@@ -473,7 +467,7 @@ function vHome(){
     + '<button class="btn line" onclick="go(\'' + (S.me || S.token ? 'me' : 'boards') + '\')">' + (S.me || S.token ? ic('user') + 'My page' : ic('trophy') + 'Leaderboards') + '</button></div>';
   if (fresh()) {
     h += '<div class="cols"><div>' + whatsOn() + fitnessChat() + guides() + howItWorks() + '</div><div>';
-    h += battleCard() + firstPostsCard();
+    h += firstPostsCard();
     if (q.feed.length) h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
     return h + '</div></div>';
   }
@@ -483,30 +477,11 @@ function vHome(){
   if (q.feed.length) h += '<section class="card"><div class="h-sec">Latest PBs</div>' + feedList(q.feed) + '</section>';
   if ((q.improved || []).length) h += '<section class="card"><div class="h-sec">Most improved' + (q.latest && q.previous ? '<span class="more" style="cursor:default;color:var(--muted)">' + esc(q.previous) + ' → ' + esc(q.latest.round) + '</span>' : '') + '</div>' + improvedList() + '</section>';
   h += '</div><div>';
-  h += battleCard() + firstPostsCard();
+  h += firstPostsCard();
   h += '<section class="card"><div class="h-sec">Club records <button class="more" onclick="go(\'boards\')">Leaderboards</button></div>' + recordsGrid() + '</section>';
   h += '<section class="card"><div class="h-sec">Team check</div><div class="small muted" style="margin:-6px 0 10px">Share of players at the target for their position.</div>' + teamBars() + '</section>';
   h += '</div></div>';
   return h;
-}
-/* Forwards v Backs: this month's points (2 for a PB, 1 for a first post) and who's involved. About effort, not size. */
-function battleCard(){
-  var b = S.squad.battle;
-  if (!b || !b.units) return '';
-  var F = b.units.Forwards, K = b.units.Backs, mine = S.me && S.me.unit;
-  var p = b.month.split('-'), mon = MONTHS[Number(p[1]) - 1];
-  var tot = F.pts + K.pts, fw = tot ? Math.round(F.pts / tot * 100) : 50;
-  var side = function(name, u, cls){
-    return '<div class="bt-side ' + cls + (F.pts !== K.pts && u.pts === Math.max(F.pts, K.pts) ? ' lead' : '') + '"><div class="bt-n">' + u.pts + '</div><div class="bt-u">' + name + (mine === name ? ' <span class="tag">You</span>' : '') + '</div>'
-      + '<div class="tiny muted">' + u.pbs + ' PB' + (u.pbs === 1 ? '' : 's') + ' · ' + u.firsts + ' first post' + (u.firsts === 1 ? '' : 's') + '<br>' + u.names.length + ' player' + (u.names.length === 1 ? '' : 's') + ' involved</div></div>';
-  };
-  var h = '<section class="card"><div class="h-sec">Forwards v Backs<span class="more" style="cursor:default;color:var(--muted)">' + esc(mon) + '</span></div>'
-    + '<div class="bt">' + side('Forwards', F, 'f') + '<div class="bt-v">v</div>' + side('Backs', K, 'b') + '</div>'
-    + '<div class="bt-bar"><i style="width:' + fw + '%"></i></div>'
-    + '<div class="small muted" style="margin-top:8px">' + (tot ? (F.pts === K.pts ? 'All square. Next post breaks the tie.' : (F.pts > K.pts ? 'Forwards' : 'Backs') + ' lead by ' + Math.abs(F.pts - K.pts) + '.') : 'New month, all square. The first post puts your unit ahead.') + '</div>'
-    + '<div class="tiny muted" style="margin-top:4px">2 points for a PB, 1 for a first post. Starts again each month.'
-    + (b.last && (b.last.Forwards || b.last.Backs) ? ' Last month: Forwards ' + b.last.Forwards + ', Backs ' + b.last.Backs + '.' : '') + '</div>';
-  return h + '</section>';
 }
 /* First posts: players who've logged a test for the first time. It's about having a go, not about the number,
    so no results are shown and nobody is ranked. */
